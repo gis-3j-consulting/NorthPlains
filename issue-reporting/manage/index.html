@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Report a Problem to the City</title>
+  <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+  <script src="https://js.arcgis.com/4.31/"></script>
+  <style>
+    body {
+        padding: 0;
+        margin: 0;
+    }
+
+    #viewDiv {
+        height: 100vh;
+        width: 100%;
+        margin: 0;
+        padding: 0;
+        position: relative;
+        cursor: auto;
+    }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 30%;
+        height: 30%;
+        overflow: auto;
+        background-color: rgba(255,255,255,0.6);
+    }
+
+    #showResolvedBtn {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      z-index: 1000;
+    }
+  </style>
+</head>
+<body>
+  <div id="viewDiv"></div>
+  <button id="showResolvedBtn">Show Resolved Reports</button>
+  <div id="reportModal" class="modal">
+    <div class="modal-content">
+        <select id="categoryDropdown" class="dropdown">
+            <option value="None">Select a type of issue to report:</option>
+            <option value="Power Outage">Power Outage</option>
+            <option value="Water Main Break">Water Main Break</option>
+            <option value="Pavement Issue">Pavement Issue</option>
+            <option value="Other">Other</option>
+        </select>
+        <label>Add a Comment: </label>
+        <textarea id="commentField" rows="4" cols="50" placeholder="Type your comment here..."></textarea>
+        <button id="submitComment" class="submitBtn">Submit Comment</button>
+        <button id="cancelComment" class="cancelBtn">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    require([
+      "esri/Map",
+      "esri/views/MapView",
+      "esri/layers/FeatureLayer",
+      "esri/Graphic",
+      "esri/symbols/SimpleMarkerSymbol",
+      "esri/renderers/UniqueValueRenderer",
+      "esri/widgets/Popup",
+      "esri/core/reactiveUtils"
+    ], function(Map, MapView, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, Popup, reactiveUtils) {
+        var map = new Map({
+            basemap: "hybrid"
+        });
+
+        let selectedType = 'None';
+        let addMode = true;
+        let tempGraphic = null;
+        let filterActive = true;
+
+        var view = new MapView({
+            container: "viewDiv",
+            map: map,
+            extent: {
+                    xmin: -123.02,
+                    ymin: 45.58,
+                    xmax: -122.97,
+                    ymax: 45.615,
+                    spatialReference: { wkid: 4326 }
+                }
+        });
+
+        var typeRenderer = {
+            type: "unique-value",
+            field: "commentType",
+            uniqueValueInfos: [
+                {
+                    value: "Power Outage",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "yellow",
+                        size: 10,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "Water Main Break",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "#5cfac0",
+                        size: 10,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "Pavement Issue",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "gray",
+                        size: 10,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "Other",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "orange",
+                        size: 10,
+                        outline: { color: "white", width: 0 }
+                    }
+                }
+            ]
+        };
+
+        var statusRenderer = {
+            type: "unique-value",
+            field: "status",
+            uniqueValueInfos: [
+                {
+                    value: "New",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "red",
+                        size: 12,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "City Notified",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "purple",
+                        size: 12,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "Crews Dispatched",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "blue",
+                        size: 12,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "Resolved",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "green",
+                        size: 12,
+                        outline: { color: "white", width: 0 }
+                    }
+                }
+            ]
+        };
+
+        var reportsLayerBottom = new FeatureLayer({
+            url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/North_Plains_Reports/FeatureServer/0",
+            outFields: ["*"],
+            renderer: statusRenderer,
+            editable: true,
+            definitionExpression: "status <> 'Resolved'"
+        });
+
+        const cityNotifiedAction = { title: "City Notified", id: "city-notified", className: "esri-icon-notice-round" };
+        const crewsDispatchedAction = { title: "Crews Dispatched", id: "crews-dispatched", className: "esri-icon-share" };
+        const resolvedAction = { title: "Resolved", id: "resolved", className: "esri-icon-check-mark" };
+
+        var reportsLayerTop = new FeatureLayer({
+            url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/North_Plains_Reports/FeatureServer/0",
+            outFields: ["*"],
+            renderer: typeRenderer,
+            editable: true,
+            popupTemplate: {
+                title: `Citizen Report: {status}`,
+                content: `
+                <b>Comment Type: </b> {commentType}<br>
+                <b>Comment: </b> {commentContent}<br>
+                <b>Current Status: </b> {status}<br>
+                <b>Assign Status:</b><br>
+                `,
+                actions: [cityNotifiedAction, crewsDispatchedAction, resolvedAction]
+            },
+            definitionExpression: "status <> 'Resolved'"
+        });
+
+        map.add(reportsLayerBottom);
+        map.add(reportsLayerTop);
+
+        function applyStatus(event) {
+            var selectedFeature = view.popup.selectedFeature;
+            console.log(selectedFeature);
+            
+            if (!selectedFeature) return;
+
+            let newStatus = null;
+            if (event.action.id === "city-notified") {
+                newStatus = "City Notified";
+            } else if (event.action.id === "crews-dispatched") {
+                newStatus = "Crews Dispatched";
+            } else if (event.action.id === "resolved") {
+                newStatus = "Resolved";
+            }
+
+            if (newStatus) {
+                const updatedFeature = {
+                    attributes: {
+                        ...selectedFeature.attributes,
+                        status: newStatus
+                    }
+                };
+
+                reportsLayerBottom.applyEdits({ updateFeatures: [updatedFeature]}).then(function() {
+                    view.popup.close();
+                    view.popup.clear();
+                })
+            }
+        };
+
+        reactiveUtils.on(
+            () => view.popup,
+            "trigger-action",
+            (event) => {
+                applyStatus(event);
+            }
+        );
+
+        const showResolvedBtn = document.getElementById("showResolvedBtn");
+
+        showResolvedBtn.addEventListener("click", function() {
+            filterActive = !filterActive;
+            const filterExpression = filterActive ? "status <> 'Resolved'" : null;
+
+            reportsLayerBottom.definitionExpression = filterExpression;
+            reportsLayerTop.definitionExpression = filterExpression;
+            
+            showResolvedBtn.innerText = filterActive ? "Show Resolved Reports" : "Hide Resolved Reports";
+        });
+    });
+
+  </script>
+</body>
+</html>
