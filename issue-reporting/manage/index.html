@@ -40,25 +40,52 @@
       left: 10px;
       z-index: 1000;
     }
+
+    #statusFilter {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 1000;
+        background: white;
+        padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    #statusFilter button {
+        display: block;
+        margin-bottom: 5px;
+        width: 150px;
+    }
+
+    #featureList {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 1000;
+        width: 300px;
+        height: 200px;
+        overflow-y: auto;
+        background-color: white;
+        border: 1px solid #ccc;
+        padding: 10px;
+    }
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
-  <button id="showResolvedBtn">Show Resolved Reports</button>
-  <div id="reportModal" class="modal">
-    <div class="modal-content">
-        <select id="categoryDropdown" class="dropdown">
-            <option value="None">Select a type of issue to report:</option>
-            <option value="Power Outage">Power Outage</option>
-            <option value="Water Main Break">Water Main Break</option>
-            <option value="Pavement Issue">Pavement Issue</option>
-            <option value="Other">Other</option>
-        </select>
-        <label>Add a Comment: </label>
-        <textarea id="commentField" rows="4" cols="50" placeholder="Type your comment here..."></textarea>
-        <button id="submitComment" class="submitBtn">Submit Comment</button>
-        <button id="cancelComment" class="cancelBtn">Cancel</button>
-    </div>
+
+  <div id="statusFilter">
+    <h4>Status Filter</h4>
+    <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
+    <button id="toggleCityNotified" class="statusBtn" data-status="City Notified">City Notified</button>
+    <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
+    <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
+  </div>
+
+  <div id="featureList">
+    <h4>Visible Reports</h4>
+    <ul id="featureItems"></ul>
   </div>
 
   <script>
@@ -70,8 +97,9 @@
       "esri/symbols/SimpleMarkerSymbol",
       "esri/renderers/UniqueValueRenderer",
       "esri/widgets/Popup",
-      "esri/core/reactiveUtils"
-    ], function(Map, MapView, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, Popup, reactiveUtils) {
+      "esri/core/reactiveUtils",
+      "esri/geometry/Extent"
+    ], function(Map, MapView, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, Popup, reactiveUtils, Extent) {
         var map = new Map({
             basemap: "hybrid"
         });
@@ -80,6 +108,7 @@
         let addMode = true;
         let tempGraphic = null;
         let filterActive = true;
+        let selectedStatuses = ["New"];
 
         var view = new MapView({
             container: "viewDiv",
@@ -96,13 +125,19 @@
         var typeRenderer = {
             type: "unique-value",
             field: "commentType",
+            defaultSymbol: {
+                type: "simple-marker",
+                color: "gray",
+                size: 6,
+                outline: { color: "white", width: 0 }
+            },
             uniqueValueInfos: [
                 {
                     value: "Power Outage",
                     symbol: {
                         type: "simple-marker",
                         color: "yellow",
-                        size: 10,
+                        size: 6,
                         outline: { color: "white", width: 0 }
                     }
                 },
@@ -111,7 +146,7 @@
                     symbol: {
                         type: "simple-marker",
                         color: "#5cfac0",
-                        size: 10,
+                        size: 6,
                         outline: { color: "white", width: 0 }
                     }
                 },
@@ -119,8 +154,8 @@
                     value: "Pavement Issue",
                     symbol: {
                         type: "simple-marker",
-                        color: "gray",
-                        size: 10,
+                        color: "#75746f",
+                        size: 6,
                         outline: { color: "white", width: 0 }
                     }
                 },
@@ -129,7 +164,7 @@
                     symbol: {
                         type: "simple-marker",
                         color: "orange",
-                        size: 10,
+                        size: 6,
                         outline: { color: "white", width: 0 }
                     }
                 }
@@ -184,7 +219,7 @@
             outFields: ["*"],
             renderer: statusRenderer,
             editable: true,
-            definitionExpression: "status <> 'Resolved'"
+            definitionExpression: buildStatusFilter()
         });
 
         const cityNotifiedAction = { title: "City Notified", id: "city-notified", className: "esri-icon-notice-round" };
@@ -200,13 +235,13 @@
                 title: `Citizen Report: {status}`,
                 content: `
                 <b>Comment Type: </b> {commentType}<br>
+                <b>Location/Address: </b> {address}<br>
                 <b>Comment: </b> {commentContent}<br>
                 <b>Current Status: </b> {status}<br>
-                <b>Assign Status:</b><br>
                 `,
                 actions: [cityNotifiedAction, crewsDispatchedAction, resolvedAction]
             },
-            definitionExpression: "status <> 'Resolved'"
+            definitionExpression: buildStatusFilter()
         });
 
         map.add(reportsLayerBottom);
@@ -250,17 +285,60 @@
             }
         );
 
-        const showResolvedBtn = document.getElementById("showResolvedBtn");
+        function buildStatusFilter() {
+            return `status IN ('${selectedStatuses.join("','")}')`;
+        }
 
-        showResolvedBtn.addEventListener("click", function() {
-            filterActive = !filterActive;
-            const filterExpression = filterActive ? "status <> 'Resolved'" : null;
+        document.querySelectorAll('.statusBtn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const status = btn.getAttribute('data-status');
+                const index = selectedStatuses.indexOf(status);
 
-            reportsLayerBottom.definitionExpression = filterExpression;
-            reportsLayerTop.definitionExpression = filterExpression;
-            
-            showResolvedBtn.innerText = filterActive ? "Show Resolved Reports" : "Hide Resolved Reports";
+                if (index === -1) {
+                    selectedStatuses.push(status);
+                    btn.style.backgroundColor = 'lightgreen';
+                } else {
+                    selectedStatuses.splice(index, 1);
+                    btn.style.backgroundColor = '';
+                }
+
+                reportsLayerTop.definitionExpression = buildStatusFilter();
+                reportsLayerBottom.definitionExpression = buildStatusFilter();
+            });
         });
+
+        function updateFeatureList() {
+            view.whenLayerView(reportsLayerTop).then(function(layerView) {
+                const query = reportsLayerTop.createQuery();
+                query.geometry = view.extent;
+                reportsLayerTop.queryFeatures(query).then(function(result) {
+                const featureItems = document.getElementById("featureItems");
+                featureItems.innerHTML = ""; 
+
+                result.features.forEach(feature => {
+                    const li = document.createElement("li");
+                    li.textContent = `${feature.attributes.commentType} at ${feature.attributes.address} Status: ${feature.attributes.status}`;
+                    featureItems.appendChild(li); 
+                });
+                });
+            });
+            view.whenLayerView(reportsLayerBottom).then(function(layerView) {
+                const query = reportsLayerBottom.createQuery();
+                query.geometry = view.extent;
+                reportsLayerBottom.queryFeatures(query).then(function(result) {
+                const featureItems = document.getElementById("featureItems");
+                featureItems.innerHTML = ""; 
+
+                result.features.forEach(feature => {
+                    const li = document.createElement("li");
+                    li.textContent = `${feature.attributes.commentType} at ${feature.attributes.address} Status: ${feature.attributes.status}`;
+                    featureItems.appendChild(li); 
+                });
+                });
+            }); 
+        }
+        
+        view.watch("extent", updateFeatureList);
     });
 
   </script>

@@ -29,14 +29,73 @@
         top: 50%;
         transform: translate(-50%, -50%);
         width: 30%;
-        height: 30%;
+        height: 40%;
+        padding: 30px;
         overflow: auto;
-        background-color: rgba(255,255,255,0.6);
+        background-color: rgba(255,255,255,0.8);
+    }
+
+    textarea {
+        width: 100%;
+    }
+
+    .dropdown {
+        font-size: 16px;
+        padding: 10px;
+        width: 100%;
+        border: 1px solid #ccc;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .submitBtn, .cancelBtn {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+
+    #addPointButton {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: white;
+        font-size: 2.5em;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        position: absolute;
+        top: 100px;
+        right: 20px;
+        z-index: 1000;
+        width: 60px;
+        height: 60px;
+        text-align: center;
+    }
+
+    #addPointButton:hover {
+        background-color: rgba(220, 220, 220, 1);
+        box-shadow: 0 6px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    #map-title {
+        position: absolute;
+        z-index: 1000;
+        top: 20px;
+        right: 20px;
+        background-color: rgba(255,255,255,0.8);
+        border-radius: 10px;
+        padding: 0px 10px;
     }
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
+  <h1 id="map-title">Report An Issue to City of North Plains</h1>
+  <button id="addPointButton" title="Make another report">+</button>
   <div id="reportModal" class="modal">
     <div class="modal-content">
         <select id="categoryDropdown" class="dropdown">
@@ -46,8 +105,10 @@
             <option value="Pavement Issue">Pavement Issue</option>
             <option value="Other">Other</option>
         </select>
-        <label>Add a Comment: </label>
-        <textarea id="commentField" rows="4" cols="50" placeholder="Type your comment here..."></textarea>
+        <label><b>Location: </b></label>
+        <textarea id="addressField" class="text-input" rows="2" cols="50" placeholder="Add an address or location..."></textarea>
+        <label><b>Add a Comment: </b></label>
+        <textarea id="commentField" class="text-input" rows="5" cols="50" placeholder="Type your comment here..."></textarea>
         <button id="submitComment" class="submitBtn">Submit Comment</button>
         <button id="cancelComment" class="cancelBtn">Cancel</button>
     </div>
@@ -84,6 +145,7 @@
 
         const reportModal = document.getElementById("reportModal");
         const commentField = document.getElementById("commentField");
+        const locationField = document.getElementById("addressField");
         const submitComment = document.getElementById("submitComment");
         const cancelComment = document.getElementById("cancelComment");
         const categoryDropdown = document.getElementById("categoryDropdown");
@@ -119,12 +181,14 @@
 
         submitComment.addEventListener("click", function() {
             var comment = commentField.value.trim();
+            var address = locationField.value.trim();
 
             var newGraphic = new Graphic({
                 geometry: tempGraphic.geometry,
                 attributes: {
                     commentType: selectedType,
                     commentContent: comment,
+                    address: address,
                     status: "New"
                 }
             });
@@ -138,18 +202,19 @@
             });
 
             reportModal.style.display = 'none';
-            view.graphics.remove(tempGraphic);
             commentField.value = '';
+            locationField.value = '';
             categoryDropdown.selectedIndex = 0;
-            map.add(reportsLayerBottom);
-            map.add(reportsLayerTop);
         });
 
         cancelComment.addEventListener('click', function() {
             view.graphics.remove(tempGraphic);
             reportModal.style.display = 'none';
             commentField.value = '';
+            locationField.value = '';
             categoryDropdown.selectedIndex = 0;
+            document.getElementById("viewDiv").style.cursor = "crosshair";
+            addMode = true;
         });
 
         var typeRenderer = {
@@ -264,6 +329,11 @@
                 <b>Comment: </b> {commentContent}
                 `
             }
+        });
+
+        document.getElementById('addPointButton').addEventListener('click', function() {
+            document.getElementById('viewDiv').style.cursor = 'crosshair';
+            addMode = true;
         });
 
     })
