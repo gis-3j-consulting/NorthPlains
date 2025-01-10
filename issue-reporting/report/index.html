@@ -61,7 +61,6 @@
 
     #addPointButton {
         margin-top: 10px;
-        padding: 10px;
         border: 1px solid #ccc;
         background-color: white;
         font-size: 2.5em;
@@ -89,13 +88,46 @@
         background-color: rgba(255,255,255,0.8);
         border-radius: 10px;
         padding: 0px 10px;
+        font-size: 28px;
     }
+
+    #map-disclaimer {
+        position: absolute;
+        bottom: 20px;
+        right: 20px;
+        width: 30%;
+        background-color: rgba(255,255,255,0.9);
+        border-radius: 10px;
+        padding: 0px 10px;
+        font-size: 16px;
+    }
+
+    @media only screen and (max-width: 768px) {
+      #map-title {
+        font-size: 18px;
+        top: 90%;
+      }
+
+      #map-disclaimer {
+        bottom: 60px;
+        font-size: 12px;
+      }
+    }
+
+    #notification-box {
+        display: flex;
+    }
+    .notification-input {
+        display: none;
+    }
+
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
   <h1 id="map-title">Report An Issue to City of North Plains</h1>
   <button id="addPointButton" title="Make another report">+</button>
+  <p id="map-disclaimer">This application is strictly for reporting non-emergencies to City of North Plains staff. If this is an emergency, please call 911.</h1>
   <div id="reportModal" class="modal">
     <div class="modal-content">
         <select id="categoryDropdown" class="dropdown">
@@ -106,9 +138,13 @@
             <option value="Other">Other</option>
         </select>
         <label><b>Location: </b></label>
-        <textarea id="addressField" class="text-input" rows="2" cols="50" placeholder="Add an address or location..."></textarea>
+            <textarea id="addressField" class="text-input" rows="2" cols="50" placeholder="Add an address or location..."></textarea>
         <label><b>Add a Comment: </b></label>
-        <textarea id="commentField" class="text-input" rows="5" cols="50" placeholder="Type your comment here..."></textarea>
+            <textarea id="commentField" class="text-input" rows="5" cols="50" placeholder="Type your comment here..."></textarea>
+        <div id="notification-box"><label><b>I would like to be updated about this issue.</b></label><input type="checkbox" id="notification-check" value="no"></div>
+            <textarea id="nameField" class="notification-input" rows="1" cols="30" placeholder="Name..."></textarea>
+            <textarea id="emailField" class="notification-input" rows="1" cols="30" placeholder="Email Address..."></textarea>
+            <textarea id="phoneField" class="notification-input" rows="1" cols="30" placeholder="Phone number..."></textarea>
         <button id="submitComment" class="submitBtn">Submit Comment</button>
         <button id="cancelComment" class="cancelBtn">Cancel</button>
     </div>
@@ -146,6 +182,9 @@
         const reportModal = document.getElementById("reportModal");
         const commentField = document.getElementById("commentField");
         const locationField = document.getElementById("addressField");
+        const nameField = document.getElementById("nameField");
+        const emailField = document.getElementById("emailField");
+        const phoneField = document.getElementById("phoneField");
         const submitComment = document.getElementById("submitComment");
         const cancelComment = document.getElementById("cancelComment");
         const categoryDropdown = document.getElementById("categoryDropdown");
@@ -182,6 +221,9 @@
         submitComment.addEventListener("click", function() {
             var comment = commentField.value.trim();
             var address = locationField.value.trim();
+            var contactName = nameField.value.trim();
+            var contactEmail = emailField.value.trim();
+            var contactPhone = phoneField.value.trim();
 
             var newGraphic = new Graphic({
                 geometry: tempGraphic.geometry,
@@ -190,7 +232,10 @@
                     commentContent: comment,
                     address: address,
                     status: "New",
-                    submitDate: getFormattedDate()
+                    submitDate: getFormattedDate(),
+                    contactName: contactName,
+                    contactEmail: contactEmail,
+                    contactPhone: contactPhone
                 }
             });
 
@@ -205,6 +250,9 @@
             reportModal.style.display = 'none';
             commentField.value = '';
             locationField.value = '';
+            nameField.value = '';
+            emailField.value = '';
+            phoneField.value = '';
             categoryDropdown.selectedIndex = 0;
         });
 
@@ -335,6 +383,13 @@
         document.getElementById('addPointButton').addEventListener('click', function() {
             document.getElementById('viewDiv').style.cursor = 'crosshair';
             addMode = true;
+        });
+
+        document.getElementById('notification-check').addEventListener('change', function(e) {
+            const notificationInputs = document.querySelectorAll('.notification-input');
+            notificationInputs.forEach(input => {
+                input.style.display = e.target.checked ? 'block': 'none';
+            });
         });
 
     })

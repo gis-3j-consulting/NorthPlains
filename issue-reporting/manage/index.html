@@ -34,13 +34,6 @@
         background-color: rgba(255,255,255,0.6);
     }
 
-    #showResolvedBtn {
-      position: absolute;
-      top: 10px;
-      left: 10px;
-      z-index: 1000;
-    }
-
     #statusFilter {
         position: absolute;
         top: 10px;
@@ -110,25 +103,39 @@
     }
 
     #addPointButton {
-        margin-top: 10px;
-        padding: 10px;
         border: 1px solid #ccc;
         background-color: white;
         font-size: 2.5em;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         border-radius: 4px;
         position: absolute;
-        top: 220px;
-        right: 20px;
+        top: 20px;
+        left: 60px;
         z-index: 1000;
         width: 60px;
         height: 60px;
         text-align: center;
     }
 
+    #downloadReport {
+        position: absolute;
+        bottom: 80px;
+        left: 20px;
+        z-index: 1000;
+        background-color: rgba(220, 220, 220, 1);
+        box-shadow: 0 6px 4px rgba(0, 0, 0, 0.3);
+    }
+
     #addPointButton:hover {
         background-color: rgba(220, 220, 220, 1);
         box-shadow: 0 6px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    #notification-box {
+        display: flex;
+    }
+    .notification-input {
+        display: none;
     }
   </style>
 </head>
@@ -144,13 +151,23 @@
     <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
   </div>
   
-  <div id="statusFilter">
+  <!-- <div id="statusFilter">
     <h4>Status Filter</h4>
     <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
     <button id="toggleDeparmentNotified" class="statusBtn" data-status="Deparment Notified">Deparment Notified</button>
     <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
     <button id="toggleInProgress" class="statusBtn" data-status="In Progress">In Progress</button>
     <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
+  </div> -->
+  
+  <div id="downloadReport">
+    <label for="startDate">Start Date:</label>
+    <input type="date" id="startDate">
+    
+    <label for="endDate">End Date:</label>
+    <input type="date" id="endDate">
+    
+    <button id="downloadReportBtn">Download Report</button>
   </div>
 
   <div id="reportModal" class="modal">
@@ -166,10 +183,15 @@
         <textarea id="addressField" class="text-input" rows="2" cols="50" placeholder="Add an address or location..."></textarea>
         <label><b>Add a Comment: </b></label>
         <textarea id="commentField" class="text-input" rows="5" cols="50" placeholder="Type your comment here..."></textarea>
+        <div id="notification-box"><label><b>Resident wants to be notified about updates</b></label><input type="checkbox" id="notification-check" value="no"></div>
+            <textarea id="nameField" class="notification-input" rows="1" cols="30" placeholder="Name..."></textarea>
+            <textarea id="emailField" class="notification-input" rows="1" cols="30" placeholder="Email Address..."></textarea>
+            <textarea id="phoneField" class="notification-input" rows="1" cols="30" placeholder="Phone number..."></textarea>
         <button id="submitComment" class="submitBtn">Submit Comment</button>
         <button id="cancelComment" class="cancelBtn">Cancel</button>
     </div>
   </div>
+
 
   <script>
     require([
@@ -338,7 +360,11 @@
                 <b>Comment: </b> {commentContent}<br>
                 <b>Current Status: </b> {status}<br>
                 <b>Date Submitted: </b> {submitDate} <br>
-                <b>Date Resolved: </b> {resolveDate}
+                <b>Date Resolved: </b> {resolveDate}<br>
+                <b>Contact Information: </b><br>
+                <i>Name: </i>{contactName}<br>
+                <i>Email Address: </i>{contactEmail}<br>
+                <i>Phone Number: </i>{contactPhone}<br>
                 `,
                 actions: [departmentNotifiedAction, crewsDispatchedAction, inProcesAction, resolvedAction]
             },
@@ -454,9 +480,19 @@
             return tempGraphic;
         });
 
+        document.getElementById('notification-check').addEventListener('change', function(e) {
+            const notificationInputs = document.querySelectorAll('.notification-input');
+            notificationInputs.forEach(input => {
+                input.style.display = e.target.checked ? 'block' : 'none';
+            });
+        });
+
         submitComment.addEventListener("click", function() {
             var comment = commentField.value.trim();
             var address = locationField.value.trim();
+            var contactName = nameField.value.trim();
+            var contactEmail = emailField.value.trim();
+            var contactPhone = phoneField.value.trim();
 
             var newGraphic = new Graphic({
                 geometry: tempGraphic.geometry,
@@ -465,7 +501,10 @@
                     commentContent: comment,
                     address: address,
                     status: "New",
-                    submitDate: getFormattedDate()
+                    submitDate: getFormattedDate(),
+                    contactName: contactName,
+                    contactEmail: contactEmail,
+                    contactPhone: contactPhone
                 }
             });
 
@@ -480,6 +519,9 @@
             reportModal.style.display = 'none';
             commentField.value = '';
             locationField.value = '';
+            nameField.value = '';
+            emailField.value = '';
+            phoneField.value = '';
             categoryDropdown.selectedIndex = 0;
         });
 
@@ -490,8 +532,69 @@
             locationField.value = '';
             categoryDropdown.selectedIndex = 0;
             document.getElementById("viewDiv").style.cursor = "crosshair";
-            addMode = true;
+            addMode = false;
+            document.getElementById("viewDiv").style.cursor = "auto";
         });
+
+        document.getElementById('downloadReportBtn').addEventListener('click', function() {
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+
+            if (!startDate || !endDate) {
+            alert("Please select both start and end dates.");
+            return;
+            }
+
+            downloadReport(startDate, endDate);
+        });
+
+        function downloadReport(startDate, endDate) {
+            const query = reportsLayerBottom.createQuery();
+            query.where = `submitDate >= '${startDate}' AND submitDate <= '${endDate}'`; 
+            query.returnGeometry = false;
+            query.outFields = ['submitDate', 'resolveDate', 'commentType', 'commentContent', 'address'];
+
+            reportsLayerBottom.queryFeatures(query).then(function(response) {
+                const features = response.features;
+                
+                const data = features.map(feature => {
+                const submitDate = new Date(feature.attributes.submitDate);
+                const resolveDate = new Date(feature.attributes.resolveDate);
+                const processTime = (resolveDate - submitDate) / (1000 * 60 * 60 * 24);
+
+                return {
+                    submitDate: submitDate.toISOString().split('T')[0],
+                    resolveDate: resolveDate.toISOString().split('T')[0],
+                    processTime: processTime.toFixed(2),
+                    commentType: feature.attributes.commentType, 
+                    commentContent: feature.attributes.commentContent,
+                    address: feature.attributes.address  
+                };
+                });
+
+                exportToCsv('report.csv', data);
+            }).catch(function(error) {
+                console.error('Error querying features: ', error);
+            });
+        }
+
+        function exportToCsv(filename, rows) {
+            const csvContent = [
+                ["Location", "Issue Type", "Comment", "Submit Date", "Resolve Date", "Process Time (days)" ],
+                ...rows.map(row => [row.address, row.commentType, row.commentContent, row.submitDate, row.resolveDate, row.processTime])
+            ].map(e => e.join(",")).join("\n");
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement("a");
+            const url = URL.createObjectURL(blob);
+            link.setAttribute("href", url);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        view.ui.move("zoom", "bottom-left");
     });
 
   </script>
