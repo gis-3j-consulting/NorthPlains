@@ -70,22 +70,105 @@
         border: 1px solid #ccc;
         padding: 10px;
     }
+
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 50%;
+        top: 50%;
+        transform: translate(-50%, -50%);
+        width: 30%;
+        height: 40%;
+        padding: 30px;
+        overflow: auto;
+        background-color: rgba(255,255,255,0.8);
+    }
+
+    textarea {
+        width: 100%;
+    }
+
+    .dropdown {
+        font-size: 16px;
+        padding: 10px;
+        width: 100%;
+        border: 1px solid #ccc;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        margin-bottom: 20px;
+    }
+
+    .submitBtn, .cancelBtn {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: white;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+    }
+
+    #addPointButton {
+        margin-top: 10px;
+        padding: 10px;
+        border: 1px solid #ccc;
+        background-color: white;
+        font-size: 2.5em;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 4px;
+        position: absolute;
+        top: 220px;
+        right: 20px;
+        z-index: 1000;
+        width: 60px;
+        height: 60px;
+        text-align: center;
+    }
+
+    #addPointButton:hover {
+        background-color: rgba(220, 220, 220, 1);
+        box-shadow: 0 6px 4px rgba(0, 0, 0, 0.3);
+    }
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
-
+  <button id="addPointButton" title="Add new report" >+</button>
   <div id="statusFilter">
     <h4>Status Filter</h4>
     <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
-    <button id="toggleCityNotified" class="statusBtn" data-status="City Notified">City Notified</button>
+    <button id="toggleDeparmentNotified" class="statusBtn" data-status="Deparment Notified">Deparment Notified</button>
     <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
+    <button id="toggleInProgress" class="statusBtn" data-status="In Progress">In Progress</button>
+    <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
+  </div>
+  
+  <div id="statusFilter">
+    <h4>Status Filter</h4>
+    <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
+    <button id="toggleDeparmentNotified" class="statusBtn" data-status="Deparment Notified">Deparment Notified</button>
+    <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
+    <button id="toggleInProgress" class="statusBtn" data-status="In Progress">In Progress</button>
     <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
   </div>
 
-  <div id="featureList">
-    <h4>Visible Reports</h4>
-    <ul id="featureItems"></ul>
+  <div id="reportModal" class="modal">
+    <div class="modal-content">
+        <select id="categoryDropdown" class="dropdown">
+            <option value="None">Select a type of issue to report:</option>
+            <option value="Power Outage">Power Outage</option>
+            <option value="Water Main Break">Water Main Break</option>
+            <option value="Pavement Issue">Pavement Issue</option>
+            <option value="Other">Other</option>
+        </select>
+        <label><b>Location: </b></label>
+        <textarea id="addressField" class="text-input" rows="2" cols="50" placeholder="Add an address or location..."></textarea>
+        <label><b>Add a Comment: </b></label>
+        <textarea id="commentField" class="text-input" rows="5" cols="50" placeholder="Type your comment here..."></textarea>
+        <button id="submitComment" class="submitBtn">Submit Comment</button>
+        <button id="cancelComment" class="cancelBtn">Cancel</button>
+    </div>
   </div>
 
   <script>
@@ -105,10 +188,16 @@
         });
 
         let selectedType = 'None';
-        let addMode = true;
+        let addMode = false;
         let tempGraphic = null;
         let filterActive = true;
         let selectedStatuses = ["New"];
+        const reportModal = document.getElementById("reportModal");
+        const commentField = document.getElementById("commentField");
+        const locationField = document.getElementById("addressField");
+        const submitComment = document.getElementById("submitComment");
+        const cancelComment = document.getElementById("cancelComment");
+        const categoryDropdown = document.getElementById("categoryDropdown");
 
         var view = new MapView({
             container: "viewDiv",
@@ -185,7 +274,7 @@
                     }
                 },
                 {
-                    value: "City Notified",
+                    value: "Department Notified",
                     symbol: {
                         type: "simple-marker",
                         color: "purple",
@@ -198,6 +287,15 @@
                     symbol: {
                         type: "simple-marker",
                         color: "blue",
+                        size: 12,
+                        outline: { color: "white", width: 0 }
+                    }
+                },
+                {
+                    value: "In Progress",
+                    symbol: {
+                        type: "simple-marker",
+                        color: "yellow",
                         size: 12,
                         outline: { color: "white", width: 0 }
                     }
@@ -222,8 +320,9 @@
             definitionExpression: buildStatusFilter()
         });
 
-        const cityNotifiedAction = { title: "City Notified", id: "city-notified", className: "esri-icon-notice-round" };
+        const departmentNotifiedAction = { title: "Department Notified", id: "Department-notified", className: "esri-icon-notice-round" };
         const crewsDispatchedAction = { title: "Crews Dispatched", id: "crews-dispatched", className: "esri-icon-share" };
+        const inProcesAction = { title: "In Progress", id: "in-progress", className: "esri-icon-refresh" };
         const resolvedAction = { title: "Resolved", id: "resolved", className: "esri-icon-check-mark" };
 
         var reportsLayerTop = new FeatureLayer({
@@ -238,14 +337,21 @@
                 <b>Location/Address: </b> {address}<br>
                 <b>Comment: </b> {commentContent}<br>
                 <b>Current Status: </b> {status}<br>
+                <b>Date Submitted: </b> {submitDate} <br>
+                <b>Date Resolved: </b> {resolveDate}
                 `,
-                actions: [cityNotifiedAction, crewsDispatchedAction, resolvedAction]
+                actions: [departmentNotifiedAction, crewsDispatchedAction, inProcesAction, resolvedAction]
             },
             definitionExpression: buildStatusFilter()
         });
 
         map.add(reportsLayerBottom);
         map.add(reportsLayerTop);
+
+        function getFormattedDate() {
+            const now = new Date();
+            return now.toISOString();
+        }
 
         function applyStatus(event) {
             var selectedFeature = view.popup.selectedFeature;
@@ -254,28 +360,34 @@
             if (!selectedFeature) return;
 
             let newStatus = null;
-            if (event.action.id === "city-notified") {
-                newStatus = "City Notified";
+            let updatedFeature = {
+                attributes: {
+                    ...selectedFeature.attributes
+                }
+            };
+
+            if (event.action.id === "department-notified") {
+                newStatus = "Department Notified";
             } else if (event.action.id === "crews-dispatched") {
                 newStatus = "Crews Dispatched";
+            } else if (event.action.id === "in-progress") {
+                newStatus = "In Progress";
             } else if (event.action.id === "resolved") {
                 newStatus = "Resolved";
+                updatedFeature.attributes.resolveDate = getFormattedDate();
             }
 
             if (newStatus) {
-                const updatedFeature = {
-                    attributes: {
-                        ...selectedFeature.attributes,
-                        status: newStatus
-                    }
-                };
-
-                reportsLayerBottom.applyEdits({ updateFeatures: [updatedFeature]}).then(function() {
+                updatedFeature.attributes.status = newStatus;
+                
+                reportsLayerBottom.applyEdits({ 
+                    updateFeatures: [updatedFeature]
+                }).then(function() {
                     view.popup.close();
                     view.popup.clear();
-                })
+                });
             }
-        };
+        }
 
         reactiveUtils.on(
             () => view.popup,
@@ -306,39 +418,80 @@
                 reportsLayerBottom.definitionExpression = buildStatusFilter();
             });
         });
+    
 
-        function updateFeatureList() {
-            view.whenLayerView(reportsLayerTop).then(function(layerView) {
-                const query = reportsLayerTop.createQuery();
-                query.geometry = view.extent;
-                reportsLayerTop.queryFeatures(query).then(function(result) {
-                const featureItems = document.getElementById("featureItems");
-                featureItems.innerHTML = ""; 
+        document.getElementById('addPointButton').addEventListener('click', function() {
+            addMode = true;
+            document.getElementById('viewDiv').style.cursor = 'crosshair';
+        });
 
-                result.features.forEach(feature => {
-                    const li = document.createElement("li");
-                    li.textContent = `${feature.attributes.commentType} at ${feature.attributes.address} Status: ${feature.attributes.status}`;
-                    featureItems.appendChild(li); 
-                });
-                });
+        categoryDropdown.addEventListener('change', () => {
+            selectedType = categoryDropdown.value;
+            console.log("Category selected: ", selectedType);
+            return selectedType;
+        });
+
+        view.on("click", function(event) {
+            if (!addMode) return;
+
+            var point = view.toMap({ x: event.x, y: event.y});
+
+            tempGraphic = new Graphic({
+                geometry: point,
+                symbol: new SimpleMarkerSymbol({
+                    color: "white",
+                    size: 8,
+                    outline: { color: [0, 0, 0], width: 1}
+                })
             });
-            view.whenLayerView(reportsLayerBottom).then(function(layerView) {
-                const query = reportsLayerBottom.createQuery();
-                query.geometry = view.extent;
-                reportsLayerBottom.queryFeatures(query).then(function(result) {
-                const featureItems = document.getElementById("featureItems");
-                featureItems.innerHTML = ""; 
 
-                result.features.forEach(feature => {
-                    const li = document.createElement("li");
-                    li.textContent = `${feature.attributes.commentType} at ${feature.attributes.address} Status: ${feature.attributes.status}`;
-                    featureItems.appendChild(li); 
-                });
-                });
-            }); 
-        }
-        
-        view.watch("extent", updateFeatureList);
+            view.graphics.add(tempGraphic);
+            currentPoint = point;
+
+            reportModal.style.display = "block";
+            document.getElementById("viewDiv").style.cursor = "auto";
+            addMode = false;
+            return tempGraphic;
+        });
+
+        submitComment.addEventListener("click", function() {
+            var comment = commentField.value.trim();
+            var address = locationField.value.trim();
+
+            var newGraphic = new Graphic({
+                geometry: tempGraphic.geometry,
+                attributes: {
+                    commentType: selectedType,
+                    commentContent: comment,
+                    address: address,
+                    status: "New",
+                    submitDate: getFormattedDate()
+                }
+            });
+
+            reportsLayerTop.applyEdits({
+                addFeatures: [newGraphic]
+            }).then(function(result) {
+                console.log("Comment successfully submitted.");
+            }).catch(function(error) {
+                console.error("Error submitting pin: ", error);
+            });
+
+            reportModal.style.display = 'none';
+            commentField.value = '';
+            locationField.value = '';
+            categoryDropdown.selectedIndex = 0;
+        });
+
+        cancelComment.addEventListener('click', function() {
+            view.graphics.remove(tempGraphic);
+            reportModal.style.display = 'none';
+            commentField.value = '';
+            locationField.value = '';
+            categoryDropdown.selectedIndex = 0;
+            document.getElementById("viewDiv").style.cursor = "crosshair";
+            addMode = true;
+        });
     });
 
   </script>
