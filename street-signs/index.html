@@ -114,14 +114,13 @@
             "esri/widgets/Locate",
             "esri/widgets/Search",
             "esri/layers/FeatureLayer",
-            "esri/layers/GeoJSONLayer",
             "esri/Graphic",
             "esri/symbols/SimpleMarkerSymbol",
             "esri/renderers/UniqueValueRenderer",
             "esri/symbols/WebStyleSymbol",
             "esri/symbols/PictureMarkerSymbol",
             "esri/Basemap"
-            ], function(Map, MapView, Home, Locate, Search, FeatureLayer, GeoJSONLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, WebStyleSymbol, PictureMarkerSymbol, Basemap) {
+            ], function(Map, MapView, Home, Locate, Search, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, WebStyleSymbol, PictureMarkerSymbol) {
             
                 let addMode = null;
                 let currentPoint = null;
@@ -150,6 +149,19 @@
                     spatialReference: { wkid: 4326 }
                     }
                 });
+
+                var locateWidget = new Locate({
+                    view: view,
+                    useHeadingEnabled: false,
+                    goToOverride: function(view, options) {
+                    options.target.scale = 1500;
+                    return view.goTo(options.target);
+                    }
+                });
+
+                let homeWidget = new Home({
+                    view: view
+                });     
 
                 var streetsignPopupTemplate = {
                     title: `{streetsignType}`,
@@ -339,6 +351,9 @@
                     fileInputs.forEach(input => input.value = '');
                     addMode = null;
                 });
+
+                view.ui.add(locateWidget, "top-left");
+                view.ui.add(homeWidget, "top-left");
         });
     </script>
 </body>
