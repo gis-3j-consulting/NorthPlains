@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Street Sign Survey</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            height: 100vh;
+            width: 100%;
+            padding: 0;
+        }
+
+        .viewDiv {
+            height: 100vh;
+            width: 100%;
+            position: relative;
+            margin: 0;
+            padding: 0;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto;
+            background-color: rgba(0,0,0,0.4);
+        }
+        
+        .modal-content {
+            background-color: rgb(254, 254, 254);
+            margin: 15% auto;
+            padding: 20px;
+            border: 1px solid rgb(136, 136, 136);
+            width: 80%;
+            max-width: 500px;
+            border-radius: 10px;
+        }
+
+        #buttonsBox {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            z-index: 1000;
+        }
+
+        button, .dropdown {
+            margin: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: white;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border-radius: 4px;
+        }
+
+        button:hover {
+            background-color: #6d6d6d;
+            color: white;
+        }
+
+        .fa-solid {
+            font-size: 22pt;
+        }
+
+    </style>
+</head>
+<body>
+    <div class="viewDiv" id="map"></div>
+    <div id="buttonsBox">
+        <button class="addButton" id="addStreetsign"><i class="fa-solid fa-sign-hanging"></i></button>
+        <button class="addButton" id="addStreetlight"><i class="fa-solid fa-lightbulb"></i></button>
+    </div>
+    <div id="reportModal" class="modal">
+        <div class="modal-content">
+            <select id="streetsignDropdown" class="dropdown" style="display: none;">
+                <option value="None">Select Street Sign Type:</option>
+                <option value="Stop Sign">Stop Sign</option>
+                <option value="Stop Light">Stop Light</option>
+                <option value="Yield Sign">Yield Sign</option>
+                <option value="Speed Limit">Speed Limit</option>
+            </select>
+            <select id="streetlightDropdown" class="dropdown" style="display: none;">
+                <option value="None">Select Streetlight Status:</option>
+                <option value="Functioning">Functioning</option>
+                <option value="Flickering">Flickering</option>
+                <option value="Out">Out</option>
+            </select>
+            <label>Add a Comment:</label>
+            <textarea id="commentField" rows="4" cols="50" placeholder="Type your comment here..."></textarea>
+            <div id="photoBox">
+                <p>Choose Photos</p><br>
+                <input type="file" id="fileInput1" class="file-input" accept="image/*">
+                <input type="file" id="fileInput2" class="file-input" accept="image/*">
+                <input type="file" id="fileInput3" class="file-input" accept="image/*">
+            </div>
+            <button id="submitReport" class="submitBtn">Submit Report</button>
+            <button id="cancelReport" class="cancelBtn">Cancel</button>
+        </div>
+    </div>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/widgets/Home",
+            "esri/widgets/Locate",
+            "esri/widgets/Search",
+            "esri/layers/FeatureLayer",
+            "esri/layers/GeoJSONLayer",
+            "esri/Graphic",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/renderers/UniqueValueRenderer",
+            "esri/symbols/WebStyleSymbol",
+            "esri/symbols/PictureMarkerSymbol",
+            "esri/Basemap"
+            ], function(Map, MapView, Home, Locate, Search, FeatureLayer, GeoJSONLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, WebStyleSymbol, PictureMarkerSymbol, Basemap) {
+            
+                let addMode = null;
+                let currentPoint = null;
+                const reportModal = document.getElementById('reportModal');
+                const streetsignDropdown = document.getElementById('streetsignDropdown');
+                const streetlightDropdown = document.getElementById('streetlightDropdown');
+                const commentField = document.getElementById('commentField');
+                const fileInputs = [
+                    document.getElementById('fileInput1'),
+                    document.getElementById('fileInput2'),
+                    document.getElementById('fileInput3')
+                ]
+                
+                var map = new Map({
+                    basemap: "hybrid"
+                });
+
+                var view = new MapView({
+                    container: "map",
+                    map: map,
+                    extent: {
+                        xmin: -123,
+                        ymin: 45.585,
+                        xmax: -122.99,
+                        ymax: 45.61,
+                    spatialReference: { wkid: 4326 }
+                    }
+                });
+
+                var streetsignPopupTemplate = {
+                    title: `{streetsignType}`,
+                    type: "text",
+                    text: `
+                        <b> Comments: </b> {commentContents}
+                    `
+                }
+
+                var streetlightPopupTemplate = {
+                    title: `Streetlight Status: {streetlightStatus}`,
+                    type: "text",
+                    text: `
+                        <b> Comments: </b> {commentContents}
+                    `
+                }
+
+                var streetsignRenderer = new UniqueValueRenderer({
+                    field: "streetsignType",
+                    defaultSymbol: new SimpleMarkerSymbol(),
+                    uniqueValueInfos: [
+                        {
+                            value: "Stop Sign",
+                            symbol: new WebStyleSymbol({
+                                name: "hexagon-3",
+                                styleName: "Esri2DPointSymbolsStyle"
+                            })
+                        },
+                        {
+                            value: "Stop Light",
+                            symbol: new WebStyleSymbol({
+                                name: "Signal",
+                                styleUrl: "https://cdn.arcgis.com/sharing/rest/content/items/6eeef46c653b40c9bda04f9bed913b70/data"
+                            })
+                        },
+                        {
+                            value: "Yield Sign",
+                            symbol: new WebStyleSymbol({
+                                name: "Overhead Hazard",
+                                styleUrl: "https://cdn.arcgis.com/sharing/rest/content/items/6eeef46c653b40c9bda04f9bed913b70/data"
+                            })
+                        },
+                        {
+                            value: "Speed Limit",
+                            symbol: new WebStyleSymbol({
+                                name: "Sign",
+                                styleUrl: "https://cdn.arcgis.com/sharing/rest/content/items/6eeef46c653b40c9bda04f9bed913b70/data"
+                            })
+                        }
+                    ]
+                });
+
+                var streetlightRenderer = new UniqueValueRenderer({
+                    field: "streetlightStatus",
+                    defaultSymbol: new SimpleMarkerSymbol(),
+                    uniqueValueInfos: [
+                        { value: "Functioning", symbol: {type: "simple-marker", size: 8, color: [0, 0, 255], outlin: null }},
+                        { value: "Flickering", symbol: {type: "simple-marker", size: 8, color: [255, 255, 0], outlin: null }},
+                        { value: "Out", symbol: {type: "simple-marker", size: 8, color: [255, 0, 0], outlin: null }}
+                    ]
+                });
+
+                var reportsLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/StreetsignReports/FeatureServer/0",
+                    popupTemplate: streetsignPopupTemplate,
+                    outFields: ['*'],
+                    editable: true,
+                    renderer: streetsignRenderer,
+                    definitionExpression: "reportType = 'streetsign'"
+                });
+
+                var streetlightLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/StreetsignReports/FeatureServer/0",
+                    popupTemplate: streetlightPopupTemplate,
+                    outFields: ['*'],
+                    editable: true,
+                    renderer: streetlightRenderer,
+                    definitionExpression: "reportType = 'streetlight'"
+                });
+
+                map.add(reportsLayer);
+                map.add(streetlightLayer);
+
+                document.getElementById("addStreetsign").addEventListener("click", function() {
+                    addMode = "streetsign";
+                    document.getElementById("map").style.cursor = "crosshair";
+                });
+
+                document.getElementById("addStreetlight").addEventListener("click", function() {
+                    addMode = "streetlight";
+                    document.getElementById("map").style.cursor = "crosshair";
+                });
+
+                view.on("click", function(event) {
+                    if (addMode === null) return;
+
+                    var point = event.mapPoint;
+
+                    var newGraphic = new Graphic({
+                        geometry: point,
+                        symbol: new SimpleMarkerSymbol({
+                            color: "white",
+                            size: 8,
+                            outline: { color: [0, 0, 0], width: 1 }
+                        })
+                    });
+
+                    view.graphics.add(newGraphic);
+                    currentPoint = point;
+
+                    reportModal.style.display = "block";
+                    if (addMode === "streetlight") {
+                        streetlightDropdown.style.display = "block";
+                        streetsignDropdown.style.display = "none";
+                    } else {
+                        streetsignDropdown.style.display = "block";
+                        streetlightDropdown.style.display = "none";
+                    }
+                    document.getElementById('map').style.cursor = "auto";
+                });
+
+                document.getElementById("submitReport").addEventListener("click", function() {
+                    var streetsignType = streetsignDropdown.value;
+                    var streetlightStatus = streetlightDropdown.value;
+                    var comments = commentField.value;
+                    const imageNames = fileInputs
+                        .map(input => input.value ? input.value.split('\\').pop() : '')
+                        .filter(name => name !== '');
+
+                    if ((addMode === "streetsign" && streetsignType === "None") || 
+                        (addMode === "streetlight" && streetlightStatus === "None")) {
+                        alert("Please select a type");
+                        return;
+                    }
+
+                    var attributes = {
+                        reportType: addMode,
+                        streetsignType: streetsignType,
+                        streetlightStatus: streetlightStatus,
+                        commentContent: comments,
+                        images: imageNames.join(',')
+                    };
+
+                    console.log("Submitting report with the following details:");
+                    console.log("Point Geometry:", currentPoint);
+                    console.log("Attributes:", attributes);
+                    console.log("Image Names:", imageNames);
+
+                    var newGraphic = new Graphic({
+                        geometry: currentPoint,
+                        attributes: attributes
+                    });
+
+                    var targetLayer = (addMode === "streetsign") ? reportsLayer : streetlightLayer;
+
+                    targetLayer.applyEdits({
+                        addFeatures: [newGraphic]
+                    })
+                    .then(function(results) {
+                        console.log("ApplyEdits results:", results);
+
+                        if (results.addFeatureResults.length > 0) {
+                            console.log("Feature successfully added.");
+                            reportModal.style.display = "none";
+                            view.graphics.removeAll();
+                            streetlightDropdown.value = "None";
+                            streetsignDropdown.value = "None";
+                            commentField.value = "";
+                            fileInputs.forEach(input => input.value = '');
+                            addMode = null;
+                        } else {
+                            console.warn("No features were added.");
+                        }
+                    })
+                    .catch(function(error) {
+                        console.error("Error during applyEdits:", error);
+                        alert("Error submitting report. Please check the console for details.");
+                    });
+                });
+
+                document.getElementById("cancelReport").addEventListener("click", function() {
+                    reportModal.style.display = "none";
+                    view.graphics.removeAll();
+                    streetlightDropdown.value = "None";
+                    streetsignDropdown.value = "None";
+                    commentField.value = null;
+                    fileInputs.forEach(input => input.value = '');
+                    addMode = null;
+                });
+        });
+    </script>
+</body>
+</html>
