@@ -70,6 +70,56 @@
             font-size: 22pt;
         }
 
+        .sign-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1rem;
+            padding: 1rem;
+            max-width: 100%;
+        }
+
+        .sign-option {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 0.1rem;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: all 0.2s;
+            font-size: 8pt;
+        }
+
+        .sign-option:hover {
+            border-color: #666;
+        }
+
+        .sign-option.selected {
+            border-color: #2196F3;
+            background-color: #bebebe;
+        }
+
+        .sign-image {
+            width: 30px;
+            height: 30px;
+            object-fit: contain;
+            margin-bottom: 0.1rem;
+        }
+
+        .sign-label {
+            text-align: center;
+            font-weight: 500;
+        }
+
+        #other-sign-text {
+            width: 90%;
+            padding: 4px;
+            margin-top: 4px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 8pt;
+        }
+
     </style>
 </head>
 <body>
@@ -80,17 +130,77 @@
     </div>
     <div id="reportModal" class="modal">
         <div class="modal-content">
-            <select id="streetsignDropdown" class="dropdown" style="display: none;">
-                <option value="None">Select Street Sign Type:</option>
-                <option value="Stop Sign">Stop Sign</option>
-                <option value="Stop Light">Stop Light</option>
-                <option value="Yield Sign">Yield Sign</option>
-                <option value="Speed Limit">Speed Limit</option>
-            </select>
+            <div class="sign-grid" id="streetsignGrid">
+                <div class="sign-option" data-value="Stop Sign">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Stopsign.svg" alt="Stop Sign" class="sign-image">
+                    <span class="sign-label">Stop Sign</span>
+                </div>
+                <div class="sign-option" data-value="Stop Ahead">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/MUTCD_W3-1_%28non-compliant_4%29.svg" alt="Stop Ahead" class="sign-image">
+                    <span class="sign-label">Stop Ahead</span>
+                </div>
+                <div class="sign-option" data-value="Traffic Light">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/LED_traffic_light.svg" alt="Traffic Light" class="sign-image">
+                    <span class="sign-label">Traffic Light</span>
+                </div>
+                <div class="sign-option" data-value="Yield Sign">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/MUTCD_R1-2.svg" alt="Yield Sign" class="sign-image">
+                    <span class="sign-label">Yield Sign</span>
+                </div>
+                <div class="sign-option" data-value="Speed Limit">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/MUTCD_W13-1P.svg" alt="Speed Limit" class="sign-image">
+                    <span class="sign-label">Speed Limit</span>
+                </div>
+                <div class="sign-option" data-value="Railroad Crossing">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/MUTCD_W10-1_%28non-compliant%29.svg" alt="Railroad Crossing" class="sign-image">
+                    <span class="sign-label">Railroad Crossing</span>
+                </div>
+                <div class="sign-option" data-value="Crosswalk">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/MUTCD_Sign_Assembly_-_W11-2_with_W16-7PL.svg" alt="Crosswalk" class="sign-image">
+                    <span class="sign-label">Crosswalk</span>
+                </div>
+                <div class="sign-option" data-value="Roundabout">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/MUTCD_Sign_Assembly_-_W2-6_with_W16-12aP.svg" alt="Roundabout" class="sign-image">
+                    <span class="sign-label">Roundabout</span>
+                </div>
+                <div class="sign-option" data-value="Slippery When Icy">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/63/MUTCD_Sign_Assembly_-_W8-5_with_W8-5aP.svg" alt="Slippery When Icy" class="sign-image">
+                    <span class="sign-label">Slippery When Icy</span>
+                </div>
+                <div class="sign-option" data-value="Slow">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/United_States_sign_-_Slow.svg" alt="Slow" class="sign-image">
+                    <span class="sign-label">Slow</span>
+                </div>
+                <div class="sign-option" data-value="Slow Traffic Ahead">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/United_States_sign_-_Slow_Traffic_Ahead.svg" alt="Slow Traffic Ahead" class="sign-image">
+                    <span class="sign-label">Slow Traffic Ahead</span>
+                </div>
+                <div class="sign-option" data-value="One Way">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/MUTCD_R6-2L.svg" alt="One Way" class="sign-image">
+                    <span class="sign-label">One Way</span>
+                </div>
+                <div class="sign-option" data-value="School Zone">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/MUTCD-CA_SW24-1.svg" alt="School Zone" class="sign-image">
+                    <span class="sign-label">School Zone</span>
+                </div>
+                <div class="sign-option" data-value="End School Zone">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/66/MUTCD_S5-2.svg" alt="End School Zone" class="sign-image">
+                    <span class="sign-label">End School Zone</span>
+                </div>
+                <div class="sign-option" data-value="Curvy Road">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/CL_road_sign_PG-4a.svg" alt="Curvy Road" class="sign-image">
+                    <span class="sign-label">Curvy Road</span>
+                </div>
+                <div class="sign-option" data-value="Other" id="other-sign-option">
+                    <img src="/placeholder-stop.png" alt="Other Sign" class="sign-image">
+                    <input type="text" id="other-sign-text">
+                </div>
+            </div>
             <select id="streetlightDropdown" class="dropdown" style="display: none;">
                 <option value="None">Select Streetlight Status:</option>
-                <option value="Functioning">Functioning</option>
-                <option value="Flickering">Flickering</option>
+                <option value="Good">Good</option>
+                <option value="Fair">Fair</option>
+                <option value="Poor">Poor</option>
                 <option value="Out">Out</option>
             </select>
             <label>Add a Comment:</label>
@@ -117,17 +227,20 @@
             "esri/Graphic",
             "esri/symbols/SimpleMarkerSymbol",
             "esri/renderers/UniqueValueRenderer",
-            "esri/symbols/WebStyleSymbol",
             "esri/symbols/PictureMarkerSymbol",
             "esri/Basemap"
-            ], function(Map, MapView, Home, Locate, Search, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, WebStyleSymbol, PictureMarkerSymbol) {
+            ], function(Map, MapView, Home, Locate, Search, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, PictureMarkerSymbol) {
             
                 let addMode = null;
                 let currentPoint = null;
+                let selectedSign = null;
+                const signOptions = document.querySelectorAll('.sign-option');
                 const reportModal = document.getElementById('reportModal');
-                const streetsignDropdown = document.getElementById('streetsignDropdown');
+                const streetsignGrid = document.getElementById('streetsignGrid');
                 const streetlightDropdown = document.getElementById('streetlightDropdown');
                 const commentField = document.getElementById('commentField');
+                const otherSignText = document.getElementById('other-sign-text');
+                const otherSignOption = document.getElementById('other-sign-option');
                 const fileInputs = [
                     document.getElementById('fileInput1'),
                     document.getElementById('fileInput2'),
@@ -181,34 +294,134 @@
 
                 var streetsignRenderer = new UniqueValueRenderer({
                     field: "streetsignType",
-                    defaultSymbol: new SimpleMarkerSymbol(),
+                    defaultSymbol: new SimpleMarkerSymbol({
+                        style: "circle",
+                        color: "white",
+                        size: "10px",
+                        outline: {
+                            color: [ 0, 0, 0],
+                            width: 1
+                        }
+                    }),
                     uniqueValueInfos: [
                         {
                             value: "Stop Sign",
-                            symbol: new WebStyleSymbol({
-                                name: "hexagon-3",
-                                styleName: "Esri2DPointSymbolsStyle"
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/2/20/Stopsign.svg",
+                                width: "20px",
+                                height: "20px"
                             })
                         },
                         {
-                            value: "Stop Light",
-                            symbol: new WebStyleSymbol({
-                                name: "Signal",
-                                styleUrl: "https://cdn.arcgis.com/sharing/rest/content/items/6eeef46c653b40c9bda04f9bed913b70/data"
+                            value: "Stop Ahead",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/7/7d/MUTCD_W3-1_%28non-compliant_4%29.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Traffic Light",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/9/95/LED_traffic_light.svg",
+                                width: "20px",
+                                height: "20px"
                             })
                         },
                         {
                             value: "Yield Sign",
-                            symbol: new WebStyleSymbol({
-                                name: "Overhead Hazard",
-                                styleUrl: "https://cdn.arcgis.com/sharing/rest/content/items/6eeef46c653b40c9bda04f9bed913b70/data"
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/3/39/MUTCD_R1-2.svg",
+                                width: "20px",
+                                height: "20px"
                             })
                         },
                         {
                             value: "Speed Limit",
-                            symbol: new WebStyleSymbol({
-                                name: "Sign",
-                                styleUrl: "https://cdn.arcgis.com/sharing/rest/content/items/6eeef46c653b40c9bda04f9bed913b70/data"
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/4/4a/MUTCD_W13-1P.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Railroad Crossing",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/d/d4/MUTCD_W10-1_%28non-compliant%29.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Crosswalk",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/2/23/MUTCD_Sign_Assembly_-_W11-2_with_W16-7PL.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Roundabout",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/8/8f/MUTCD_Sign_Assembly_-_W2-6_with_W16-12aP.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Slippery When Icy",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/6/63/MUTCD_Sign_Assembly_-_W8-5_with_W8-5aP.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Slow",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/a/ab/United_States_sign_-_Slow.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Slow Traffic Ahead",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/5/55/United_States_sign_-_Slow_Traffic_Ahead.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "One Way",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/0/05/MUTCD_R6-2L.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "School Zone",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/6/62/MUTCD-CA_SW24-1.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "End School Zone",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/6/62/MUTCD-CA_SW24-1.svg",
+                                width: "20px",
+                                height: "20px"
+                            })
+                        },
+                        {
+                            value: "Curvy Road",
+                            symbol: new PictureMarkerSymbol({
+                                url: "https://upload.wikimedia.org/wikipedia/commons/3/3c/CL_road_sign_PG-4a.svg",
+                                width: "20px",
+                                height: "20px"
                             })
                         }
                     ]
@@ -218,9 +431,10 @@
                     field: "streetlightStatus",
                     defaultSymbol: new SimpleMarkerSymbol(),
                     uniqueValueInfos: [
-                        { value: "Functioning", symbol: {type: "simple-marker", size: 8, color: [0, 0, 255], outlin: null }},
-                        { value: "Flickering", symbol: {type: "simple-marker", size: 8, color: [255, 255, 0], outlin: null }},
-                        { value: "Out", symbol: {type: "simple-marker", size: 8, color: [255, 0, 0], outlin: null }}
+                        { value: "Good", symbol: {type: "simple-marker", size: 8, color: [0, 0, 255], outline: null }},
+                        { value: "Fair", symbol: {type: "simple-marker", size: 8, color: [255, 255, 0], outline: null }},
+                        { value: "Poor", symbol: {type: "simple-marker", size: 8, color: [255, 0, 0], outline: null }},
+                        { value: "Out", symbol: {type: "simple-marker", size: 10, color: [0, 0, 0], outline: { color: [ 255, 255, 255], width: 0.3 } }}
                     ]
                 });
 
@@ -244,6 +458,8 @@
 
                 map.add(reportsLayer);
                 map.add(streetlightLayer);
+
+                streetlightLayer.effect = "bloom(3, 0.2px, 2%)";
 
                 document.getElementById("addStreetsign").addEventListener("click", function() {
                     addMode = "streetsign";
@@ -275,16 +491,16 @@
                     reportModal.style.display = "block";
                     if (addMode === "streetlight") {
                         streetlightDropdown.style.display = "block";
-                        streetsignDropdown.style.display = "none";
+                        streetsignGrid.style.display = "none";
                     } else {
-                        streetsignDropdown.style.display = "block";
+                        streetsignGrid.style.display = "grid";
                         streetlightDropdown.style.display = "none";
                     }
                     document.getElementById('map').style.cursor = "auto";
                 });
 
                 document.getElementById("submitReport").addEventListener("click", function() {
-                    var streetsignType = streetsignDropdown.value;
+                    var streetsignType = selectedSign;
                     var streetlightStatus = streetlightDropdown.value;
                     var comments = commentField.value;
                     const imageNames = fileInputs
@@ -328,7 +544,7 @@
                             reportModal.style.display = "none";
                             view.graphics.removeAll();
                             streetlightDropdown.value = "None";
-                            streetsignDropdown.value = "None";
+                            selectedSign = null;
                             commentField.value = "";
                             fileInputs.forEach(input => input.value = '');
                             addMode = null;
@@ -346,10 +562,26 @@
                     reportModal.style.display = "none";
                     view.graphics.removeAll();
                     streetlightDropdown.value = "None";
-                    streetsignDropdown.value = "None";
+                    selectedSign = null;
                     commentField.value = null;
                     fileInputs.forEach(input => input.value = '');
                     addMode = null;
+                });
+
+                signOptions.forEach(option => {
+                    option.addEventListener('click', () => {
+                        signOptions.forEach(opt => opt.classList.remove('selected'));
+                        option.classList.add('selected');
+                        selectedSign = option.dataset.value;
+                    });
+                });
+
+                otherSignText.addEventListener('input', () => {
+                    if (otherSignText.value.trim() !== '') {
+                        selectedSign = otherSignText.value.trim();
+                        signOptions.forEach(opt => opt.classList.remove('selected'));
+                        otherSignOption.classList.add('selected');
+                    }
                 });
 
                 view.ui.add(locateWidget, "top-left");
