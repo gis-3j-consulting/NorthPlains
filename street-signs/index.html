@@ -119,6 +119,11 @@
             border-radius: 4px;
             font-size: 8pt;
         }
+        
+        #streetsignContent {
+            display: none;
+        }
+
 
     </style>
 </head>
@@ -130,78 +135,89 @@
     </div>
     <div id="reportModal" class="modal">
         <div class="modal-content">
-            <div class="sign-grid" id="streetsignGrid">
-                <div class="sign-option" data-value="Stop Sign">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Stopsign.svg" alt="Stop Sign" class="sign-image">
-                    <span class="sign-label">Stop Sign</span>
+            <div id="streetsignContent">
+                <div class="sign-grid" id="streetsignGrid">
+                    <div class="sign-option" data-value="Stop Sign">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/20/Stopsign.svg" alt="Stop Sign" class="sign-image">
+                        <span class="sign-label">Stop Sign</span>
+                    </div>
+                    <div class="sign-option" data-value="Stop Ahead">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/MUTCD_W3-1_%28non-compliant_4%29.svg" alt="Stop Ahead" class="sign-image">
+                        <span class="sign-label">Stop Ahead</span>
+                    </div>
+                    <div class="sign-option" data-value="Traffic Light">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/LED_traffic_light.svg" alt="Traffic Light" class="sign-image">
+                        <span class="sign-label">Traffic Light</span>
+                    </div>
+                    <div class="sign-option" data-value="Yield Sign">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/MUTCD_R1-2.svg" alt="Yield Sign" class="sign-image">
+                        <span class="sign-label">Yield Sign</span>
+                    </div>
+                    <div class="sign-option" data-value="Speed Limit">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/MUTCD_W13-1P.svg" alt="Speed Limit" class="sign-image">
+                        <span class="sign-label">Speed Limit</span>
+                    </div>
+                    <div class="sign-option" data-value="Railroad Crossing">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/MUTCD_W10-1_%28non-compliant%29.svg" alt="Railroad Crossing" class="sign-image">
+                        <span class="sign-label">Railroad Crossing</span>
+                    </div>
+                    <div class="sign-option" data-value="Crosswalk">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/MUTCD_Sign_Assembly_-_W11-2_with_W16-7PL.svg" alt="Crosswalk" class="sign-image">
+                        <span class="sign-label">Crosswalk</span>
+                    </div>
+                    <div class="sign-option" data-value="Roundabout">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/MUTCD_Sign_Assembly_-_W2-6_with_W16-12aP.svg" alt="Roundabout" class="sign-image">
+                        <span class="sign-label">Roundabout</span>
+                    </div>
+                    <div class="sign-option" data-value="Slippery When Icy">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/63/MUTCD_Sign_Assembly_-_W8-5_with_W8-5aP.svg" alt="Slippery When Icy" class="sign-image">
+                        <span class="sign-label">Slippery When Icy</span>
+                    </div>
+                    <div class="sign-option" data-value="Slow">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/United_States_sign_-_Slow.svg" alt="Slow" class="sign-image">
+                        <span class="sign-label">Slow</span>
+                    </div>
+                    <div class="sign-option" data-value="Slow Traffic Ahead">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/United_States_sign_-_Slow_Traffic_Ahead.svg" alt="Slow Traffic Ahead" class="sign-image">
+                        <span class="sign-label">Slow Traffic Ahead</span>
+                    </div>
+                    <div class="sign-option" data-value="One Way">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/MUTCD_R6-2L.svg" alt="One Way" class="sign-image">
+                        <span class="sign-label">One Way</span>
+                    </div>
+                    <div class="sign-option" data-value="School Zone">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/MUTCD-CA_SW24-1.svg" alt="School Zone" class="sign-image">
+                        <span class="sign-label">School Zone</span>
+                    </div>
+                    <div class="sign-option" data-value="End School Zone">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/6/66/MUTCD_S5-2.svg" alt="End School Zone" class="sign-image">
+                        <span class="sign-label">End School Zone</span>
+                    </div>
+                    <div class="sign-option" data-value="Curvy Road">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/CL_road_sign_PG-4a.svg" alt="Curvy Road" class="sign-image">
+                        <span class="sign-label">Curvy Road</span>
+                    </div>
+                    <div class="sign-option" data-value="Other" id="other-sign-option">
+                        <img src="/placeholder-stop.png" alt="Other Sign" class="sign-image">
+                        <input type="text" id="other-sign-text">
+                    </div>
                 </div>
-                <div class="sign-option" data-value="Stop Ahead">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7d/MUTCD_W3-1_%28non-compliant_4%29.svg" alt="Stop Ahead" class="sign-image">
-                    <span class="sign-label">Stop Ahead</span>
-                </div>
-                <div class="sign-option" data-value="Traffic Light">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/9/95/LED_traffic_light.svg" alt="Traffic Light" class="sign-image">
-                    <span class="sign-label">Traffic Light</span>
-                </div>
-                <div class="sign-option" data-value="Yield Sign">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/39/MUTCD_R1-2.svg" alt="Yield Sign" class="sign-image">
-                    <span class="sign-label">Yield Sign</span>
-                </div>
-                <div class="sign-option" data-value="Speed Limit">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/4/4a/MUTCD_W13-1P.svg" alt="Speed Limit" class="sign-image">
-                    <span class="sign-label">Speed Limit</span>
-                </div>
-                <div class="sign-option" data-value="Railroad Crossing">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/d/d4/MUTCD_W10-1_%28non-compliant%29.svg" alt="Railroad Crossing" class="sign-image">
-                    <span class="sign-label">Railroad Crossing</span>
-                </div>
-                <div class="sign-option" data-value="Crosswalk">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/2/23/MUTCD_Sign_Assembly_-_W11-2_with_W16-7PL.svg" alt="Crosswalk" class="sign-image">
-                    <span class="sign-label">Crosswalk</span>
-                </div>
-                <div class="sign-option" data-value="Roundabout">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/8/8f/MUTCD_Sign_Assembly_-_W2-6_with_W16-12aP.svg" alt="Roundabout" class="sign-image">
-                    <span class="sign-label">Roundabout</span>
-                </div>
-                <div class="sign-option" data-value="Slippery When Icy">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/63/MUTCD_Sign_Assembly_-_W8-5_with_W8-5aP.svg" alt="Slippery When Icy" class="sign-image">
-                    <span class="sign-label">Slippery When Icy</span>
-                </div>
-                <div class="sign-option" data-value="Slow">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/a/ab/United_States_sign_-_Slow.svg" alt="Slow" class="sign-image">
-                    <span class="sign-label">Slow</span>
-                </div>
-                <div class="sign-option" data-value="Slow Traffic Ahead">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/5/55/United_States_sign_-_Slow_Traffic_Ahead.svg" alt="Slow Traffic Ahead" class="sign-image">
-                    <span class="sign-label">Slow Traffic Ahead</span>
-                </div>
-                <div class="sign-option" data-value="One Way">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/0/05/MUTCD_R6-2L.svg" alt="One Way" class="sign-image">
-                    <span class="sign-label">One Way</span>
-                </div>
-                <div class="sign-option" data-value="School Zone">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/62/MUTCD-CA_SW24-1.svg" alt="School Zone" class="sign-image">
-                    <span class="sign-label">School Zone</span>
-                </div>
-                <div class="sign-option" data-value="End School Zone">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/6/66/MUTCD_S5-2.svg" alt="End School Zone" class="sign-image">
-                    <span class="sign-label">End School Zone</span>
-                </div>
-                <div class="sign-option" data-value="Curvy Road">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/3/3c/CL_road_sign_PG-4a.svg" alt="Curvy Road" class="sign-image">
-                    <span class="sign-label">Curvy Road</span>
-                </div>
-                <div class="sign-option" data-value="Other" id="other-sign-option">
-                    <img src="/placeholder-stop.png" alt="Other Sign" class="sign-image">
-                    <input type="text" id="other-sign-text">
-                </div>
+                <select id="streetsignStatus" class="dropdown">
+                    <option value="None">Select Streetsign Condition:</option>
+                    <option value="Good">Good</option>
+                    <option value="Fair">Fair</option>
+                    <option value="Poor">Poor</option>
+                </select>
+                <select id="streetsignReflective" class="dropdown">
+                    <option value="None">Reflective?</option>
+                    <option value="Reflective">Yes</option>
+                    <option value="Unreflective">No</option>
+                </select>
             </div>
             <select id="streetlightDropdown" class="dropdown" style="display: none;">
                 <option value="None">Select Streetlight Status:</option>
-                <option value="Good">Good</option>
-                <option value="Fair">Fair</option>
-                <option value="Poor">Poor</option>
-                <option value="Out">Out</option>
+                <option value="Working">Working</option>
+                <option value="Not Working">Not Working</option>
             </select>
             <label>Add a Comment:</label>
             <textarea id="commentField" rows="4" cols="50" placeholder="Type your comment here..."></textarea>
@@ -236,7 +252,9 @@
                 let selectedSign = null;
                 const signOptions = document.querySelectorAll('.sign-option');
                 const reportModal = document.getElementById('reportModal');
-                const streetsignGrid = document.getElementById('streetsignGrid');
+                const streetsignContent = document.getElementById('streetsignContent');
+                const streetsignStatusDropdown = document.getElementById('streetsignStatus');
+                const streetsignReflectiveDropdown = document.getElementById('streetsignReflective');
                 const streetlightDropdown = document.getElementById('streetlightDropdown');
                 const commentField = document.getElementById('commentField');
                 const otherSignText = document.getElementById('other-sign-text');
@@ -431,10 +449,8 @@
                     field: "streetlightStatus",
                     defaultSymbol: new SimpleMarkerSymbol(),
                     uniqueValueInfos: [
-                        { value: "Good", symbol: {type: "simple-marker", size: 8, color: [0, 0, 255], outline: null }},
-                        { value: "Fair", symbol: {type: "simple-marker", size: 8, color: [255, 255, 0], outline: null }},
-                        { value: "Poor", symbol: {type: "simple-marker", size: 8, color: [255, 0, 0], outline: null }},
-                        { value: "Out", symbol: {type: "simple-marker", size: 10, color: [0, 0, 0], outline: { color: [ 255, 255, 255], width: 0.3 } }}
+                        { value: "Working", symbol: {type: "simple-marker", size: 8, color: [0, 255, 0], outline: null }},
+                        { value: "Not Working", symbol: {type: "simple-marker", size: 8, color: [255, 0, 0], outline: null }},
                     ]
                 });
 
@@ -491,9 +507,9 @@
                     reportModal.style.display = "block";
                     if (addMode === "streetlight") {
                         streetlightDropdown.style.display = "block";
-                        streetsignGrid.style.display = "none";
+                        streetsignContent.style.display = "none";
                     } else {
-                        streetsignGrid.style.display = "grid";
+                        streetsignContent.style.display = "block";
                         streetlightDropdown.style.display = "none";
                     }
                     document.getElementById('map').style.cursor = "auto";
@@ -503,6 +519,9 @@
                     var streetsignType = selectedSign;
                     var streetlightStatus = streetlightDropdown.value;
                     var comments = commentField.value;
+                    var streetsignStatus = streetsignStatusDropdown.value;
+                    var streetsignReflective = streetsignReflectiveDropdown.value;
+
                     const imageNames = fileInputs
                         .map(input => input.value ? input.value.split('\\').pop() : '')
                         .filter(name => name !== '');
@@ -516,6 +535,8 @@
                     var attributes = {
                         reportType: addMode,
                         streetsignType: streetsignType,
+                        streetsignStatus: streetsignStatus,
+                        streetsignReflective: streetsignReflective,
                         streetlightStatus: streetlightStatus,
                         commentContent: comments,
                         images: imageNames.join(',')
@@ -544,6 +565,8 @@
                             reportModal.style.display = "none";
                             view.graphics.removeAll();
                             streetlightDropdown.value = "None";
+                            streetsignStatusDropdown.value = "None";
+                            streetsignReflectiveDropdown.value = "None";
                             selectedSign = null;
                             commentField.value = "";
                             fileInputs.forEach(input => input.value = '');
@@ -562,6 +585,8 @@
                     reportModal.style.display = "none";
                     view.graphics.removeAll();
                     streetlightDropdown.value = "None";
+                    streetsignStatusDropdown.value = "None";
+                    streetsignReflectiveDropdown.value = "None";
                     selectedSign = null;
                     commentField.value = null;
                     fileInputs.forEach(input => input.value = '');
