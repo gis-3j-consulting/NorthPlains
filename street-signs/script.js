@@ -65,31 +65,36 @@ require([
         });     
 
         var streetsignPopupTemplate = {
-            title: `{streetsignType}`,
-            type: "text",
-            text: `
-                <b> Comments: </b> {commentContents}
-            `
+            title: "{streetsignType}",
+            content: [{
+                type: "fields",
+                fieldInfos: [
+                    { fieldName: "streetsignStatus", label: "Sign Status" },
+                    { fieldName: "streetsignReflective", label: "Reflective?" },
+                    { fieldName: "commentContents", label: "Comments" }
+                ]
+            }]
         }
 
         var streetlightPopupTemplate = {
             title: `Streetlight Status: {streetlightStatus}`,
-            type: "text",
-            text: `
-                <b> Comments: </b> {commentContents}
-            `
+            content: [{
+                type: "fields",
+                fieldInfos: [
+                    { fieldName: "streetlightStatus", label: "Streetlight Status" },
+                    { fieldName: "streetlightType", label: "Attachment" },
+                    { fieldName: "streetlightNight", label: "Night Status" },
+                    { fieldName: "commentContents", label: "Comments" }
+                ]
+            }]
         }
 
         var streetsignRenderer = new UniqueValueRenderer({
             field: "streetsignType",
-            defaultSymbol: new SimpleMarkerSymbol({
-                style: "circle",
-                color: "white",
-                size: "10px",
-                outline: {
-                    color: [ 0, 0, 0],
-                    width: 1
-                }
+            defaultSymbol: new PictureMarkerSymbol({
+                url: "https://upload.wikimedia.org/wikipedia/commons/d/d9/Icon-round-Question_mark.svg",
+                width: "20px",
+                height: "20px"
             }),
             uniqueValueInfos: [
                 {
@@ -143,7 +148,7 @@ require([
                 {
                     value: "Speed Limit",
                     symbol: new PictureMarkerSymbol({
-                        url: "https://upload.wikimedia.org/wikipedia/commons/4/4a/MUTCD_W13-1P.svg",
+                        url: "https://upload.wikimedia.org/wikipedia/commons/5/5d/Oregon-speed.svg",
                         width: "20px",
                         height: "20px"
                     })
@@ -231,24 +236,24 @@ require([
                 {
                     value: "No Parking",
                     symbol: new PictureMarkerSymbol({
-                        url: "https://upload.wikimedia.org/wikipedia/commons/b/bb/MUTCD_R8-3.svg",
-                        width: "20px",
+                        url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Philippines_road_sign_R5-3P.svg",
+                        width: "15px",
                         height: "20px"
                     })
                 },
                 {
                     value: "No Parking (One Way)",
                     symbol: new PictureMarkerSymbol({
-                        url: "https://upload.wikimedia.org/wikipedia/commons/3/3b/MUTCD_R7-1.svg",
-                        width: "20px",
+                        url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Philippines_road_sign_R5-3P.svg",
+                        width: "15px",
                         height: "20px"
                     })
                 },
                 {
                     value: "No Parking (Two Way)",
                     symbol: new PictureMarkerSymbol({
-                        url: "https://upload.wikimedia.org/wikipedia/commons/3/3b/MUTCD_R7-1.svg",
-                        width: "20px",
+                        url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Philippines_road_sign_R5-3P.svg",
+                        width: "15px",
                         height: "20px"
                     })
                 }
@@ -259,9 +264,9 @@ require([
             field: "streetlightStatus",
             defaultSymbol: new SimpleMarkerSymbol(),
             uniqueValueInfos: [
-                { value: "Good", symbol: {type: "simple-marker", size: 8, color: [0, 255, 0], outline: null }},
-                { value: "Fair", symbol: {type: "simple-marker", size: 8, color: [255, 255, 0], outline: null }},
-                { value: "Poor", symbol: {type: "simple-marker", size: 8, color: [255, 0, 0], outline: null }}
+                { value: "Good", symbol: {type: "simple-marker", size: 6, color: [0, 255, 0], outline: null }},
+                { value: "Fair", symbol: {type: "simple-marker", size: 6, color: [255, 255, 0], outline: null }},
+                { value: "Poor", symbol: {type: "simple-marker", size: 6, color: [255, 0, 0], outline: null }}
             ]
         });
 
@@ -286,7 +291,7 @@ require([
         map.add(reportsLayer);
         map.add(streetlightLayer);
 
-        streetlightLayer.effect = "bloom(3, 0.2px, 2%)";
+        streetlightLayer.effect = "bloom(1, 0.2px, 10%)";
 
         document.getElementById("addStreetsign").addEventListener("click", function() {
             addMode = "streetsign";
@@ -351,6 +356,7 @@ require([
                 streetsignReflective: streetsignReflective,
                 streetlightStatus: streetlightStatus,
                 streetlightType: streetlightType,
+                streetlightNight: "Not checked",
                 commentContents: comments,
                 images: imageNames.join(',')
             };
