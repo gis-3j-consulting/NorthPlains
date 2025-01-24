@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_2" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 2633.42 2931.1">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: url(#linear-gradient-2);
+      }
+
+      .cls-2 {
+        fill: url(#radial-gradient);
+      }
+
+      .cls-3 {
+        fill: url(#radial-gradient-3);
+      }
+
+      .cls-4 {
+        fill: url(#linear-gradient-3);
+      }
+
+      .cls-5 {
+        fill: url(#radial-gradient-2);
+      }
+
+      .cls-6 {
+        fill: url(#radial-gradient-4);
+      }
+
+      .cls-7 {
+        fill: #073307;
+      }
+
+      .cls-8, .cls-9 {
+        fill: #0c6d0c;
+      }
+
+      .cls-9 {
+        stroke: #fff;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 40px;
+      }
+
+      .cls-10 {
+        fill: url(#linear-gradient);
+      }
+    </style>
+    <linearGradient id="linear-gradient" x1="1043.13" y1="1031.81" x2="1428.89" y2="1031.81" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#000"/>
+      <stop offset=".19" stop-color="#565655"/>
+      <stop offset=".41" stop-color="#999998"/>
+      <stop offset=".54" stop-color="#fff"/>
+      <stop offset=".67" stop-color="#999998"/>
+      <stop offset=".79" stop-color="#565655"/>
+      <stop offset="1" stop-color="#000"/>
+    </linearGradient>
+    <linearGradient id="linear-gradient-2" x1="1035.26" y1="2517.78" x2="1421.02" y2="2517.78" xlink:href="#linear-gradient"/>
+    <linearGradient id="linear-gradient-3" x1="1003.77" y1="1986.38" x2="1460.38" y2="1986.38" xlink:href="#linear-gradient"/>
+    <radialGradient id="radial-gradient" cx="1236.01" cy="1800.83" fx="1236.01" fy="1800.83" r="31.73" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset=".37" stop-color="#565655"/>
+      <stop offset=".53" stop-color="#565655"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <radialGradient id="radial-gradient-2" cy="1112.99" fy="1112.99" r="31.73" xlink:href="#radial-gradient"/>
+    <radialGradient id="radial-gradient-3" cy="327.73" fy="327.73" r="31.73" xlink:href="#radial-gradient"/>
+    <radialGradient id="radial-gradient-4" cy="962.44" fy="962.44" r="31.73" xlink:href="#radial-gradient"/>
+  </defs>
+  <g id="Layer_1-2" data-name="Layer_1">
+    <g>
+      <path class="cls-10" d="M1428.89,1110.2c0,1.27-5.82,2.31-13,2.31h-359.76c-7.18,0-13-1.03-13-2.31v-156.78c0-1.27,5.82-2.31,13-2.31h359.76c7.18,0,13,1.03,13,2.31v156.78Z"/>
+      <path class="cls-1" d="M1421.02,2919.29c0,6.52-5.82,11.81-13,11.81h-359.76c-7.18,0-13-5.29-13-11.81v-803.01c0-6.52,5.82-11.81,13-11.81h359.76c7.18,0,13,5.29,13,11.81v803.01Z"/>
+      <path class="cls-4" d="M1015.58,1832.86h433c6.52,0,11.81,5.29,11.81,11.81v283.42c0,6.52-5.29,11.81-11.81,11.81h-433c-6.52,0-11.81-5.29-11.81-11.81v-283.42c0-6.52,5.29-11.81,11.81-11.81Z"/>
+      <polygon class="cls-7" points="320.81 43.88 320.81 801.8 2072.49 1228.63 2072.49 546.5 320.81 0 320.81 43.88"/>
+      <polygon class="cls-8" points="334.59 45.76 334.59 793.67 2086.26 1214.85 2086.26 541.74 334.59 2.46 334.59 45.76"/>
+      <polygon class="cls-9" points="423.38 147.67 415.34 745.94 2004.88 1104.28 2012.12 565.84 423.84 113.03 423.38 147.67"/>
+      <polygon class="cls-7" points="0 1180.14 0 1920.53 2633.42 1792.46 2633.42 956.02 0 1180.14"/>
+      <polygon class="cls-8" points="0 1171.55 0 1899.78 2633.42 1773.81 2633.42 951.12 0 1171.55"/>
+      <polygon class="cls-9" points="74.79 1222.33 74.79 1804.91 2542.88 1704.14 2542.88 1045.99 74.79 1222.33"/>
+      <path class="cls-2" d="M1267.75,1800.83c0,17.53-14.21,31.73-31.73,31.73s-31.73-14.21-31.73-31.73,14.21-31.73,31.73-31.73,31.73,14.21,31.73,31.73Z"/>
+      <path class="cls-5" d="M1267.75,1112.99c0,17.53-14.21,31.73-31.73,31.73s-31.73-14.21-31.73-31.73,14.21-31.73,31.73-31.73,31.73,14.21,31.73,31.73Z"/>
+      <path class="cls-3" d="M1267.75,327.73c0,17.53-14.21,31.73-31.73,31.73s-31.73-14.21-31.73-31.73,14.21-31.73,31.73-31.73,31.73,14.21,31.73,31.73Z"/>
+      <path class="cls-6" d="M1267.75,962.44c0,17.53-14.21,31.73-31.73,31.73s-31.73-14.21-31.73-31.73,14.21-31.73,31.73-31.73,31.73,14.21,31.73,31.73Z"/>
+    </g>
+  </g>
+</svg>

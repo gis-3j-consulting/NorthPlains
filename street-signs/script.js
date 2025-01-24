@@ -3,14 +3,14 @@ require([
     "esri/views/MapView",
     "esri/widgets/Home",
     "esri/widgets/Locate",
-    "esri/widgets/Search",
     "esri/layers/FeatureLayer",
     "esri/Graphic",
     "esri/symbols/SimpleMarkerSymbol",
     "esri/renderers/UniqueValueRenderer",
     "esri/symbols/PictureMarkerSymbol",
-    "esri/Basemap"
-    ], function(Map, MapView, Home, Locate, Search, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, PictureMarkerSymbol) {
+    "esri/widgets/Popup",
+    "esri/core/reactiveUtils"
+    ], function(Map, MapView, Home, Locate, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, PictureMarkerSymbol, Popup, reactiveUtils) {
     
         let addMode = null;
         let currentPoint = null;
@@ -62,7 +62,10 @@ require([
 
         let homeWidget = new Home({
             view: view
-        });     
+        }); 
+        
+        const lightOn = { title: "Light Working", id: "light-on", className: "esri-icon-notice-round" };
+        const lightOut = { title: "Light Out", id: "light-out", className: "esri-icon-share" };
 
         var streetsignPopupTemplate = {
             title: "{streetsignType}",
@@ -86,7 +89,8 @@ require([
                     { fieldName: "streetlightNight", label: "Night Status" },
                     { fieldName: "commentContents", label: "Comments" }
                 ]
-            }]
+            }],
+            actions: [lightOn, lightOut]
         }
 
         var streetsignRenderer = new UniqueValueRenderer({
@@ -116,9 +120,9 @@ require([
                 {
                     value: "Cross Streets",
                     symbol: new PictureMarkerSymbol({
-                        url: "https://upload.wikimedia.org/wikipedia/commons/2/20/Stopsign.svg",
-                        width: "20px",
-                        height: "20px"
+                        url: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSaPa10f5nJJ8RfBS2Ap7ElWbQtGkdjkNUbeQ&s",
+                        width: "30px",
+                        height: "10px"
                     })
                 },
                 {
@@ -261,12 +265,12 @@ require([
         });
 
         var streetlightRenderer = new UniqueValueRenderer({
-            field: "streetlightStatus",
+            field: "streetlightNight",
             defaultSymbol: new SimpleMarkerSymbol(),
             uniqueValueInfos: [
-                { value: "Good", symbol: {type: "simple-marker", size: 6, color: [0, 255, 0], outline: null }},
-                { value: "Fair", symbol: {type: "simple-marker", size: 6, color: [255, 255, 0], outline: null }},
-                { value: "Poor", symbol: {type: "simple-marker", size: 6, color: [255, 0, 0], outline: null }}
+                { value: "Not checked", symbol: {type: "simple-marker", size: 5, color: [255, 255, 0], outline: null }},
+                { value: "Light Working", symbol: {type: "simple-marker", size: 5, color: [0, 255, 0], outline: null }},
+                { value: "Light Out", symbol: {type: "simple-marker", size: 5, color: [255, 0, 0], outline: null }}
             ]
         });
 
@@ -293,6 +297,48 @@ require([
 
         streetlightLayer.effect = "bloom(1, 0.2px, 10%)";
 
+        function nightCheck(event) {
+            var selectedFeature = view.popup.selectedFeature;
+            console.log(selectedFeature);
+            
+            if (!selectedFeature) return;
+
+            let newStatus = null;
+            let updatedFeature = {
+                attributes: {
+                    ...selectedFeature.attributes
+                }
+            };
+
+            if (event.action.id === "light-on") {
+                newStatus = "Light Working";
+            } else if (event.action.id === "light-out") {
+                newStatus = "Light Out";
+            }
+
+            if (newStatus) {
+                updatedFeature.attributes.streetlightNight = newStatus;
+
+                console.log(`Updating feature ${updatedFeature.id} with status ${newStatus} (${updatedFeature.attributes.streetlightNight})`)
+                
+                streetlightLayer.applyEdits({ 
+                    updateFeatures: [updatedFeature]
+                }).then(function() {
+                    view.popup.close();
+                    view.popup.clear();
+                });
+            }
+        }
+
+        reactiveUtils.on(
+            () => view.popup,
+            "trigger-action",
+            (event) => {
+                nightCheck(event);
+            }
+        );
+        
+        
         document.getElementById("addStreetsign").addEventListener("click", function() {
             addMode = "streetsign";
             document.getElementById("map").style.cursor = "crosshair";
@@ -304,10 +350,11 @@ require([
         });
 
         view.on("click", function(event) {
-            if (addMode === null) return;
-
+            if (addMode === null && !isAdjustingLocation) return;
+        
             var point = event.mapPoint;
-
+        
+            view.graphics.removeAll();
             var newGraphic = new Graphic({
                 geometry: point,
                 symbol: new SimpleMarkerSymbol({
@@ -316,15 +363,17 @@ require([
                     outline: { color: [0, 0, 0], width: 1 }
                 })
             });
-
             view.graphics.add(newGraphic);
+        
             currentPoint = point;
-
+        
+            if (isAdjustingLocation) return;
+        
             reportModal.style.display = "block";
             if (addMode === "streetlight") {
                 streetlightContent.style.display = "block";
                 streetsignContent.style.display = "none";
-            } else {
+            } else if (addMode === "streetsign") {
                 streetsignContent.style.display = "block";
                 streetlightContent.style.display = "none";
             }
@@ -408,6 +457,7 @@ require([
             streetlightTypeDropdown.value = "None";
             streetsignStatusDropdown.value = "None";
             streetsignReflectiveDropdown.value = "None";
+            locationConfirmButton.style.display = "None";
             selectedSign = null;
             commentField.value = null;
             fileInputs.forEach(input => input.value = '');
@@ -447,30 +497,11 @@ require([
                 if (addMode === "streetlight") {
                     streetlightContent.style.display = "block";
                     streetsignContent.style.display = "none";
-                } else {
+                } else if (addMode === "streetsign") {
                     streetsignContent.style.display = "block";
                     streetlightContent.style.display = "none";
                 }
             }
-        });
-
-        view.on("click", function(event) {
-            if (!isAdjustingLocation) return;
-
-            var point = event.mapPoint;
-
-            view.graphics.removeAll();
-            var newGraphic = new Graphic({
-                geometry: point,
-                symbol: new SimpleMarkerSymbol({
-                    color: "white",
-                    size: 8,
-                    outline: { color: [0, 0, 0], width: 1 }
-                })
-            });
-            view.graphics.add(newGraphic);
-
-            currentPoint = point;
         });
 
         view.ui.add(locateWidget, "top-left");
