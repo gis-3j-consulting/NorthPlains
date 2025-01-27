@@ -24,6 +24,7 @@ require([
         const streetlightContent = document.getElementById('streetlightContent');
         const streetlightDropdown = document.getElementById('streetlightDropdown');
         const streetlightTypeDropdown = document.getElementById('streetlightType');
+        const streetlightMaterialDropdown = document.getElementById('streetlightMaterial');
         const commentField = document.getElementById('commentField');
         const otherSignText = document.getElementById('other-sign-text');
         const otherSignOption = document.getElementById('other-sign-option');
@@ -85,7 +86,8 @@ require([
                 type: "fields",
                 fieldInfos: [
                     { fieldName: "streetlightStatus", label: "Streetlight Status" },
-                    { fieldName: "streetlightType", label: "Attachment" },
+                    { fieldName: "streetlightType", label: "Attachment Type" },
+                    { fieldName: "streetlightMaterial", label: "Material" },
                     { fieldName: "streetlightNight", label: "Night Status" },
                     { fieldName: "commentContents", label: "Comments" }
                 ]
@@ -387,6 +389,7 @@ require([
             var streetsignStatus = streetsignStatusDropdown.value;
             var streetsignReflective = streetsignReflectiveDropdown.value;
             var streetlightType = streetlightTypeDropdown.value;
+            var streetlightMaterial = streetlightMaterialDropdown.value;
 
             const imageNames = fileInputs
                 .map(input => input.value ? input.value.split('\\').pop() : '')
@@ -405,6 +408,7 @@ require([
                 streetsignReflective: streetsignReflective,
                 streetlightStatus: streetlightStatus,
                 streetlightType: streetlightType,
+                streetlightMaterial: streetlightMaterial,
                 streetlightNight: "Not checked",
                 commentContents: comments,
                 images: imageNames.join(',')
@@ -434,6 +438,7 @@ require([
                     view.graphics.removeAll();
                     streetlightDropdown.value = "None";
                     streetlightTypeDropdown.value = "None";
+                    streetlightMaterialDropdown.value = "None";
                     streetsignStatusDropdown.value = "None";
                     streetsignReflectiveDropdown.value = "None";
                     selectedSign = null;
@@ -455,6 +460,7 @@ require([
             view.graphics.removeAll();
             streetlightDropdown.value = "None";
             streetlightTypeDropdown.value = "None";
+            streetlightMaterialDropdown.value = "None";
             streetsignStatusDropdown.value = "None";
             streetsignReflectiveDropdown.value = "None";
             locationConfirmButton.style.display = "None";
