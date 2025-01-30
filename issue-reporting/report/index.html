@@ -159,6 +159,11 @@
       "esri/symbols/SimpleMarkerSymbol",
       "esri/renderers/UniqueValueRenderer"
     ], function(Map, MapView, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer) {
+        function getFormattedDate() {
+            const now = new Date();
+            return now.toISOString();
+        }
+
         var map = new Map({
             basemap: "hybrid"
         });

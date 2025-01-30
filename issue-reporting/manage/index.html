@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Report a Problem to the City</title>
+  <title>North Plains Public Works Reports</title>
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.31/"></script>
   <style>
@@ -194,6 +194,11 @@
 
 
   <script>
+    function getFormattedDate() {
+            const now = new Date();
+            return now.toISOString();
+        }
+
     require([
       "esri/Map",
       "esri/views/MapView",
@@ -342,7 +347,7 @@
             definitionExpression: buildStatusFilter()
         });
 
-        const departmentNotifiedAction = { title: "Department Notified", id: "Department-notified", className: "esri-icon-notice-round" };
+        const departmentNotifiedAction = { title: "Department Notified", id: "department-notified", className: "esri-icon-notice-round" };
         const crewsDispatchedAction = { title: "Crews Dispatched", id: "crews-dispatched", className: "esri-icon-share" };
         const inProcesAction = { title: "In Progress", id: "in-progress", className: "esri-icon-refresh" };
         const resolvedAction = { title: "Resolved", id: "resolved", className: "esri-icon-check-mark" };
@@ -373,11 +378,6 @@
 
         map.add(reportsLayerBottom);
         map.add(reportsLayerTop);
-
-        function getFormattedDate() {
-            const now = new Date();
-            return now.toISOString();
-        }
 
         function applyStatus(event) {
             var selectedFeature = view.popup.selectedFeature;
@@ -493,7 +493,7 @@
             var contactName = nameField.value.trim();
             var contactEmail = emailField.value.trim();
             var contactPhone = phoneField.value.trim();
-
+            
             var newGraphic = new Graphic({
                 geometry: tempGraphic.geometry,
                 attributes: {
