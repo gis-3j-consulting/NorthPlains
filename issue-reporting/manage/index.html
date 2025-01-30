@@ -6,6 +6,7 @@
   <title>North Plains Public Works Reports</title>
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.31/"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
   <style>
     body {
         padding: 0;
@@ -51,17 +52,21 @@
         width: 150px;
     }
 
-    #featureList {
+    #typeFilter {
         position: absolute;
-        bottom: 10px;
-        right: 10px;
+        top: 10px;
+        right: 200px;
         z-index: 1000;
-        width: 300px;
-        height: 200px;
-        overflow-y: auto;
-        background-color: white;
-        border: 1px solid #ccc;
+        background: white;
         padding: 10px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+
+    #typeFilter button {
+        display: block;
+        margin-bottom: 5px;
+        width: 150px;
     }
 
     .modal {
@@ -93,13 +98,22 @@
         margin-bottom: 20px;
     }
 
-    .submitBtn, .cancelBtn {
+    .modalBtn {
         margin-top: 10px;
         padding: 10px;
         border: 1px solid #ccc;
         background-color: white;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         border-radius: 4px;
+    }
+
+    .modalBtn:hover {
+        background-color: rgb(150, 150, 150);
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #downloadReportBtn, .reportDate {
+        margin: 10px;
     }
 
     #addPointButton {
@@ -119,7 +133,7 @@
 
     #downloadReport {
         position: absolute;
-        bottom: 80px;
+        bottom: 40px;
         left: 20px;
         z-index: 1000;
         background-color: rgba(220, 220, 220, 1);
@@ -137,37 +151,97 @@
     .notification-input {
         display: none;
     }
+
+    #locationConfirmButton {
+        margin-top: 10px;
+        position: absolute;
+        top: 20px;
+        left: 100px;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        width: 60px;
+        height: 60px;
+        display: none;
+        z-index: 1000;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        cursor: pointer;
+    }
+
+    #locationConfirmButton:hover {
+        background-color: #45a049;
+    }
+
+    #reportsTableContainer {
+        position: absolute; 
+        bottom: 10px; 
+        right: 20px; 
+        z-index: 1000; 
+        background: white; 
+        padding: 10px; 
+        border-radius: 5px; 
+        max-height: 300px; 
+        width: 600px; 
+        overflow-y: auto; 
+        display: none;
+    }
+
+    #reports-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    #toggleTableBtn {
+        position: absolute;
+        top: 250px;
+        right: 20px;
+        z-index: 1000;
+        padding: 8px 16px;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .table-th {
+        padding: 8px;
+        border: 1px solid #ddd;
+        background: #f4f4f4;
+    }
   </style>
 </head>
 <body>
   <div id="viewDiv"></div>
   <button id="addPointButton" title="Add new report" >+</button>
+  <button id="locationConfirmButton">
+    <i class="fa-solid fa-check"></i>
+  </button>
   <div id="statusFilter">
     <h4>Status Filter</h4>
     <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
-    <button id="toggleDeparmentNotified" class="statusBtn" data-status="Deparment Notified">Deparment Notified</button>
+    <button id="toggleDepartmentNotified" class="statusBtn" data-status="Department Notified">Department Notified</button>
     <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
     <button id="toggleInProgress" class="statusBtn" data-status="In Progress">In Progress</button>
     <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
   </div>
-  
-  <!-- <div id="statusFilter">
-    <h4>Status Filter</h4>
-    <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
-    <button id="toggleDeparmentNotified" class="statusBtn" data-status="Deparment Notified">Deparment Notified</button>
-    <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
-    <button id="toggleInProgress" class="statusBtn" data-status="In Progress">In Progress</button>
-    <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
-  </div> -->
+
+  <div id="typeFilter">
+    <h4>Type Filter</h4>
+    <button id="togglePowerOutage" class="typeBtn" data-type="Power Outage" style="background-color: lightgreen;">Power Outage</button>
+    <button id="toggleWaterMain" class="typeBtn" data-type="Water Main Break" style="background-color: lightgreen;">Water Main Break</button>
+    <button id="togglePavement" class="typeBtn" data-type="Pavement Issue" style="background-color: lightgreen;">Pavement Issue</button>
+    <button id="toggleOther" class="typeBtn" data-type="Other" style="background-color: lightgreen;">Other</button>
+  </div>
   
   <div id="downloadReport">
     <label for="startDate">Start Date:</label>
-    <input type="date" id="startDate">
+    <input type="date" class="reportDate" id="startDate">
     
     <label for="endDate">End Date:</label>
-    <input type="date" id="endDate">
+    <input type="date" class="reportDate" id="endDate">
     
-    <button id="downloadReportBtn">Download Report</button>
+    <button id="downloadReportBtn" class="modalBtn">Download Report</button>
   </div>
 
   <div id="reportModal" class="modal">
@@ -187,10 +261,30 @@
             <textarea id="nameField" class="notification-input" rows="1" cols="30" placeholder="Name..."></textarea>
             <textarea id="emailField" class="notification-input" rows="1" cols="30" placeholder="Email Address..."></textarea>
             <textarea id="phoneField" class="notification-input" rows="1" cols="30" placeholder="Phone number..."></textarea>
-        <button id="submitComment" class="submitBtn">Submit Comment</button>
-        <button id="cancelComment" class="cancelBtn">Cancel</button>
+        <button id="submitComment" class="modalBtn">Submit Comment</button>
+        <button id="cancelComment" class="modalBtn">Cancel</button>
+        <button id="adjustLocation" class="modalBtn">Adjust Location</button>
+
     </div>
   </div>
+
+  <div id="reportsTableContainer">
+    <table id="reportsTable">
+      <thead>
+        <tr>
+          <th class="table-th">Date</th>
+          <th class="table-th">Location</th>
+          <th class="table-th">Type</th>
+          <th class="table-th">Comment</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+  
+  <button id="toggleTableBtn">
+    Show New Reports
+  </button>
 
 
   <script>
@@ -219,12 +313,19 @@
         let tempGraphic = null;
         let filterActive = true;
         let selectedStatuses = ["New"];
+        let selectedTypes = ["Power Outage", "Water Main Break", "Pavement Issue", "Other"];
+        let isAdjustingLocation = false;
         const reportModal = document.getElementById("reportModal");
         const commentField = document.getElementById("commentField");
         const locationField = document.getElementById("addressField");
         const submitComment = document.getElementById("submitComment");
         const cancelComment = document.getElementById("cancelComment");
         const categoryDropdown = document.getElementById("categoryDropdown");
+        const adjustLocationButton = document.getElementById("adjustLocation");
+        const locationConfirmButton = document.getElementById("locationConfirmButton");
+        const toggleTableBtn = document.getElementById('toggleTableBtn');
+        const reportsTableContainer = document.getElementById('reportsTableContainer');
+        const reportsTableBody = document.querySelector('#reportsTable tbody');
 
         var view = new MapView({
             container: "viewDiv",
@@ -424,7 +525,7 @@
         );
 
         function buildStatusFilter() {
-            return `status IN ('${selectedStatuses.join("','")}')`;
+            return `status IN ('${selectedStatuses.join("','")}') AND commentType IN ('${selectedTypes.join("','")}')`;
         }
 
         document.querySelectorAll('.statusBtn').forEach(btn => {
@@ -437,6 +538,24 @@
                     btn.style.backgroundColor = 'lightgreen';
                 } else {
                     selectedStatuses.splice(index, 1);
+                    btn.style.backgroundColor = '';
+                }
+
+                reportsLayerTop.definitionExpression = buildStatusFilter();
+                reportsLayerBottom.definitionExpression = buildStatusFilter();
+            });
+        });
+
+        document.querySelectorAll('.typeBtn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const type = btn.getAttribute('data-type');
+                const index = selectedTypes.indexOf(type);
+
+                if (index === -1) {
+                    selectedTypes.push(type);
+                    btn.style.backgroundColor = 'lightgreen';
+                } else {
+                    selectedTypes.splice(index, 1);
                     btn.style.backgroundColor = '';
                 }
 
@@ -457,10 +576,28 @@
             return selectedType;
         });
 
+        adjustLocationButton.addEventListener('click', function() {
+            reportModal.style.display = "none";
+            isAdjustingLocation = true;
+            document.getElementById("viewDiv").style.cursor = "crosshair";
+            locationConfirmButton.style.display= "block";
+            console.log(locationConfirmButton.style.display);
+        });
+
+        locationConfirmButton.addEventListener("click", function() {
+            if (currentPoint) {
+                isAdjustingLocation = false;
+                document.getElementById('viewDiv').style.cursor = "auto";
+                locationConfirmButton.style.display = "none";
+                reportModal.style.display = "block";
+            }
+        });
+
         view.on("click", function(event) {
-            if (!addMode) return;
+            if (!addMode && (!isAdjustingLocation)) return;
 
             var point = view.toMap({ x: event.x, y: event.y});
+            view.graphics.removeAll();
 
             tempGraphic = new Graphic({
                 geometry: point,
@@ -473,6 +610,8 @@
 
             view.graphics.add(tempGraphic);
             currentPoint = point;
+
+            if (isAdjustingLocation) return;
 
             reportModal.style.display = "block";
             document.getElementById("viewDiv").style.cursor = "auto";
@@ -550,28 +689,37 @@
 
         function downloadReport(startDate, endDate) {
             const query = reportsLayerBottom.createQuery();
-            query.where = `submitDate >= '${startDate}' AND submitDate <= '${endDate}'`; 
+            query.where = `submitDate >= '${startDate}' AND submitDate <= '${endDate}'`;
             query.returnGeometry = false;
-            query.outFields = ['submitDate', 'resolveDate', 'commentType', 'commentContent', 'address'];
-
+            query.outFields = ['submitDate', 'resolveDate', 'commentType', 'commentContent', 'address', 'status'];
+            
             reportsLayerBottom.queryFeatures(query).then(function(response) {
                 const features = response.features;
                 
                 const data = features.map(feature => {
-                const submitDate = new Date(feature.attributes.submitDate);
-                const resolveDate = new Date(feature.attributes.resolveDate);
-                const processTime = (resolveDate - submitDate) / (1000 * 60 * 60 * 24);
-
-                return {
-                    submitDate: submitDate.toISOString().split('T')[0],
-                    resolveDate: resolveDate.toISOString().split('T')[0],
-                    processTime: processTime.toFixed(2),
-                    commentType: feature.attributes.commentType, 
-                    commentContent: feature.attributes.commentContent,
-                    address: feature.attributes.address  
-                };
+                    const submitDate = new Date(feature.attributes.submitDate);
+                    
+                    let resolveDate = null;
+                    let processTime = null;
+                    let resolveDateStr = "";
+                    
+                    if (feature.attributes.resolveDate && feature.attributes.status === "Resolved") {
+                        resolveDate = new Date(feature.attributes.resolveDate);
+                        processTime = (resolveDate - submitDate) / (1000 * 60 * 60 * 24);
+                        resolveDateStr = resolveDate.toISOString().split('T')[0];
+                    }
+                    
+                    return {
+                        submitDate: submitDate.toISOString().split('T')[0],
+                        resolveDate: resolveDateStr,
+                        processTime: processTime ? processTime.toFixed(2) : "Not resolved",
+                        commentType: feature.attributes.commentType,
+                        commentContent: feature.attributes.commentContent,
+                        address: feature.attributes.address,
+                        status: feature.attributes.status
+                    };
                 });
-
+                
                 exportToCsv('report.csv', data);
             }).catch(function(error) {
                 console.error('Error querying features: ', error);
@@ -580,10 +728,18 @@
 
         function exportToCsv(filename, rows) {
             const csvContent = [
-                ["Location", "Issue Type", "Comment", "Submit Date", "Resolve Date", "Process Time (days)" ],
-                ...rows.map(row => [row.address, row.commentType, row.commentContent, row.submitDate, row.resolveDate, row.processTime])
+                ["Location", "Issue Type", "Comment", "Submit Date", "Resolve Date", "Process Time (days)", "Status"],
+                ...rows.map(row => [
+                    row.address,
+                    row.commentType,
+                    row.commentContent,
+                    row.submitDate,
+                    row.resolveDate || "Pending",
+                    row.processTime,
+                    row.status
+                ])
             ].map(e => e.join(",")).join("\n");
-
+            
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const link = document.createElement("a");
             const url = URL.createObjectURL(blob);
@@ -594,7 +750,55 @@
             document.body.removeChild(link);
         }
 
-        view.ui.move("zoom", "bottom-left");
+        toggleTableBtn.addEventListener('click', function() {
+            if (reportsTableContainer.style.display === 'none') {
+                reportsTableContainer.style.display = 'block';
+                toggleTableBtn.textContent = 'Hide New Reports';
+                updateReportsTable();
+            } else {
+                reportsTableContainer.style.display = 'none';
+                toggleTableBtn.textContent = 'Show New Reports';
+            }
+            });
+            
+            function updateReportsTable() {
+                const query = reportsLayerTop.createQuery();
+                query.where = "status = 'New'";
+                query.outFields = ['submitDate', 'address', 'commentType', 'commentContent'];
+                query.orderByFields = ['submitDate DESC'];
+
+                reportsLayerTop.queryFeatures(query).then(function(response) {
+                    reportsTableBody.innerHTML = '';
+                    
+                    response.features.forEach(feature => {
+                    const row = document.createElement('tr');
+                    const submitDate = new Date(feature.attributes.submitDate);
+                    
+                    const dateTimeStr = submitDate.toLocaleDateString() + ' ' + 
+                                        submitDate.toLocaleTimeString([], {
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                        });
+                    
+                    row.innerHTML = `
+                        <td style="padding: 8px; border: 1px solid #ddd;">${dateTimeStr}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${feature.attributes.address || 'N/A'}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${feature.attributes.commentType}</td>
+                        <td style="padding: 8px; border: 1px solid #ddd;">${feature.attributes.commentContent}</td>
+                    `;
+                    
+                    reportsTableBody.appendChild(row);
+                    });
+                });
+            }
+
+                reportsLayerTop.on("edits", function(event) {
+                if (reportsTableContainer.style.display !== 'none') {
+                    updateReportsTable();
+                }
+
+            view.ui.remove("zoom");
+        });
     });
 
   </script>
