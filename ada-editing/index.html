@@ -19,6 +19,7 @@
             margin: 0;
             padding: 0;
             position: relative;
+            cursor: help;
         }
 
         #controls {
@@ -107,6 +108,7 @@
                 const applyDateBtn = document.getElementById('apply-date-btn');
                 const infoBtn = document.getElementById('what');
                 const logDiv = document.getElementById('application-log');
+                const mapDiv = document.getElementById('viewDiv');
 
                 infoBtn.classList.add('selected');
 
@@ -130,12 +132,14 @@
                     applyDateMode = true;
                     applyDateBtn.classList.add("selected");
                     infoBtn.classList.remove("selected");
+                    mapDiv.style.cursor = "auto";
                 });
 
                 infoBtn.addEventListener('click', function() {
                     applyDateMode = false;
                     applyDateBtn.classList.remove("selected");
                     infoBtn.classList.add("selected");
+                    mapDiv.style.cursor = "help";
                 });
 
                 monthValue.addEventListener('change', function() {
