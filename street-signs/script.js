@@ -4,13 +4,14 @@ require([
     "esri/widgets/Home",
     "esri/widgets/Locate",
     "esri/layers/FeatureLayer",
+    "esri/layers/TileLayer",
     "esri/Graphic",
     "esri/symbols/SimpleMarkerSymbol",
     "esri/renderers/UniqueValueRenderer",
     "esri/symbols/PictureMarkerSymbol",
     "esri/widgets/Popup",
     "esri/core/reactiveUtils"
-    ], function(Map, MapView, Home, Locate, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, PictureMarkerSymbol, Popup, reactiveUtils) {
+    ], function(Map, MapView, Home, Locate, FeatureLayer, TileLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer, PictureMarkerSymbol, Popup, reactiveUtils) {
     
         let addMode = null;
         let currentPoint = null;
@@ -294,6 +295,11 @@ require([
             definitionExpression: "reportType = 'streetlight'"
         });
 
+        var aerialImagery = new TileLayer({
+            url: "https://tiles.arcgis.com/tiles/pZZTDhBBLO3B9dnl/arcgis/rest/services/NPaerial24_online/MapServer"
+        });
+
+        map.add(aerialImagery);
         map.add(reportsLayer);
         map.add(streetlightLayer);
 

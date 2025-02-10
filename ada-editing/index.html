@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADA Ramp Date Editing</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.31/"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+                padding: 0;
+                margin: 0;
+        }
+    
+        #viewDiv {
+            height: 100vh;
+            width: 100%;
+            margin: 0;
+            padding: 0;
+            position: relative;
+        }
+
+        #controls {
+            position: absolute;
+            display: flex;
+            bottom: 5%;
+            right: 5%;
+            align-items: center;
+            padding: 10px;
+            background-color: rgba(255,255,255,0.6);
+            border-radius: 5px;
+        }
+
+        button, input {
+            height: 50px;
+            background-color: white;
+            margin: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        input {
+            width: 70px;
+        }
+
+        .mode-button {
+            width: 50px;
+        }
+
+        .mode-button:hover {
+            background-color: pink;
+        }
+
+        .mode-button.selected {
+            background-color: cyan;
+        }
+
+        #application-log {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            width: 500px;
+            height: 200px;
+            z-index: 100;
+        }
+
+        p {
+            background-color: rgba(255,255,255,0.6);
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="viewDiv"></div>
+    <div id="controls">
+        <label for="month">Month: </label>
+        <input type="number" id="month" name="month" value="1">
+        <label for="year">Year:</label>
+        <input type="number" id="year" name="year" value="1970">
+        <button class="mode-button" id="apply-date-btn">
+            <i class="fa-regular fa-calendar"></i>
+        </button>
+        <button class="mode-button" id="what">
+            <i class="fa-solid fa-question"></i>
+        </button>
+    </div>
+
+    <div id="application-log"></div>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/FeatureLayer",
+            "esri/Graphic",
+            "esri/symbols/SimpleMarkerSymbol",
+            "esri/renderers/UniqueValueRenderer"
+            ], function(Map, MapView, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer) {
+                
+                let applyDateMode = false;
+                let buildMonth = 1;
+                let buildYear = 1970;
+                const monthValue = document.getElementById('month');
+                const yearValue = document.getElementById('year');
+                const applyDateBtn = document.getElementById('apply-date-btn');
+                const infoBtn = document.getElementById('what');
+                const logDiv = document.getElementById('application-log');
+
+                infoBtn.classList.add('selected');
+
+                var map = new Map({
+                    basemap: "hybrid"
+                });
+
+                var view = new MapView({
+                    container: "viewDiv",
+                    map: map,
+                    extent: {
+                            xmin: -123.02,
+                            ymin: 45.58,
+                            xmax: -122.97,
+                            ymax: 45.615,
+                            spatialReference: { wkid: 4326 }
+                        }
+                });
+
+                applyDateBtn.addEventListener('click', function() {
+                    applyDateMode = true;
+                    applyDateBtn.classList.add("selected");
+                    infoBtn.classList.remove("selected");
+                });
+
+                infoBtn.addEventListener('click', function() {
+                    applyDateMode = false;
+                    applyDateBtn.classList.remove("selected");
+                    infoBtn.classList.add("selected");
+                });
+
+                monthValue.addEventListener('change', function() {
+                    buildMonth = monthValue.value
+                });
+                
+                yearValue.addEventListener('change', function() {
+                    buildYear = yearValue.value
+                });
+
+                function addLogMessage(message) {
+                    const p = document.createElement('p');
+                    p.textContent = message;
+                    logDiv.appendChild(p);
+
+                    setTimeout(() => {
+                        p.remove();
+                    }, 5000);
+                }
+
+                var adaRenderer = {
+                    type: "unique-value",
+                    field: "buildMonth",
+                    uniqueValueInfos: [
+                        {
+                            value: "1",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "blue",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "2",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "darkblue",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "3",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "lightgreen",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "4",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "green",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "5",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "darkgreen",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "6",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "pink",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "7",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "red",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "8",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "darkred",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "9",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "yellow",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "10",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "orange",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "11",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "darkorange",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "12",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "lightblue",
+                                size: 9,
+                                outline: { color: "white", width: 0 }
+                            }
+                        },
+                        {
+                            value: "13",
+                            symbol: {
+                                type: "simple-marker",
+                                color: "gray",
+                                size: 9,
+                                outline: { color: "white", width: 0.5 }
+                            }
+                        }
+                    ]
+                };
+
+                var asBuiltRenderer = new UniqueValueRenderer({
+                    field: "Prvt_Pblc",
+                    defaultSymbol: { type: "simple-fill", color: [255, 255, 255, 0], outline: { color: [255, 255, 255, 0], width: 0 } }, 
+                    uniqueValueInfos: [
+                    { value: "Private", symbol: { type: "simple-fill", color: [255, 0, 0, 0.5] }, outline: { color: [255, 0, 0, 1], width: 3 } }, 
+                    { value: "Public", symbol: { type: "simple-fill", color: [0, 0, 255, 0.5] }, outline: { color: [0, 0, 255, 1], width: 3 } }
+                    ]
+                });
+
+                var adaLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/North_Plains_ADA/FeatureServer/11",
+                    outFields: ["*"],
+                    renderer: adaRenderer,
+                    editable: true,
+                    popupTemplate: {
+                        title: `{intersection_name}`,
+                        content: [{
+                            type: "text",
+                            text: `
+                                <b>Ramp Number: </b> {fileName}<br>
+                                <b>Corner/Ramp Position: </b> {crnr_pstn}/{ramp_position}<br>
+                                <b>Status: </b> {ramp_pf}<br>
+                                <b>Build Date: </b> {buildMonth}/{buildYear}
+                            `
+                        }] 
+                    }
+                });
+
+                var asBuiltLayer = new FeatureLayer({
+                    url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/As_Builts_20240301/FeatureServer/2",
+                    outFields: ["*"],
+                    renderer: asBuiltRenderer,
+                    editable: true,
+                    popupTemplate: {
+                        title: `{Name}`,
+                        content: [{
+                            type: "text",
+                            text: `
+                                {Link_3J}
+                            `
+                        }] 
+                    }
+                });
+
+                map.add(asBuiltLayer);
+                map.add(adaLayer);
+
+                view.on('click', function(event) {
+                    if (applyDateMode) {
+                        event.stopPropagation();
+                        
+                        view.hitTest(event).then(function(response) {
+                            if (response.results.length > 0) {
+                                var graphic = response.results[0].graphic;
+
+                                var attributes = {
+                                    buildMonth: buildMonth,
+                                    buildYear: buildYear
+                                };
+
+                                var updateFeature = {
+                                    attributes: {
+                                        ...graphic.attributes,
+                                        ...attributes
+                                    }
+                                };
+
+                                adaLayer.applyEdits({
+                                    updateFeatures: [updateFeature]
+                                }).then(function(result) {
+                                    if (result.updateFeatureResults.length > 0) {
+                                        addLogMessage(`Feature updated successfully: Ramp #${updateFeature.attributes.fileName}: ${buildMonth}/${buildYear}`);
+                                    }
+                                }).catch(function(error) {
+                                    addLogMessage("Error updating feature:", error);
+                                });
+                            } else {
+                                addLogMessage("No ramp found");
+                            }
+                        });
+                    }
+                });
+
+        });
+    </script>
+</body>
+</html>
