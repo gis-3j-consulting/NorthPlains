@@ -93,10 +93,11 @@
             "esri/Map",
             "esri/views/MapView",
             "esri/layers/FeatureLayer",
+            "esri/layers/TileLayer",
             "esri/Graphic",
             "esri/symbols/SimpleMarkerSymbol",
             "esri/renderers/UniqueValueRenderer"
-            ], function(Map, MapView, FeatureLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer) {
+            ], function(Map, MapView, FeatureLayer, TileLayer, Graphic, SimpleMarkerSymbol, UniqueValueRenderer) {
                 
                 let applyDateMode = false;
                 let buildMonth = 1;
@@ -323,6 +324,11 @@
                     }
                 });
 
+                var aerialImagery = new TileLayer({
+                    url: "https://tiles.arcgis.com/tiles/pZZTDhBBLO3B9dnl/arcgis/rest/services/NPaerial24_online/MapServer"
+                });
+
+                map.add(aerialImagery);
                 map.add(asBuiltLayer);
                 map.add(adaLayer);
 
