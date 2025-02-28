@@ -241,6 +241,14 @@ require([
                     })
                 },
                 {
+                    value: "Type 3 Barricade",
+                    symbol: new PictureMarkerSymbol({
+                        url: "https://cdni.iconscout.com/illustration/premium/thumb/traffic-road-barriers-illustration-download-in-svg-png-gif-file-formats--barrier-various-themes-set-128-pack-miscellaneous-illustrations-9142180.png?f=webp",
+                        width: "30px",
+                        height: "30px"
+                    })
+                },
+                {
                     value: "No Parking",
                     symbol: new PictureMarkerSymbol({
                         url: "https://upload.wikimedia.org/wikipedia/commons/5/5b/Philippines_road_sign_R5-3P.svg",
