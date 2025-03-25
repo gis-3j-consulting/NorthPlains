@@ -529,14 +529,27 @@ require([
 
         const oauthInfo = new OAuthInfo({
             appId: "6SgB0tweNWk5N6kV",
-            popup: true
+            popup: true,
+            // Add these properties:
+            expiration: 20160, // Token expiration in minutes (14 days)
+            persistLogin: true // Save credentials
         });
-
+        
         esriId.registerOAuthInfos([oauthInfo]);
-
-        esriId.checkSignInStatus(oauthInfo.portalUrl + "/sharing").then(function() {
-            console.log("User is signed in");
-        }).catch(function() {
-            esriId.getCredential(oauthInfo.portalUrl + "/sharing");
-        });
+        
+        // Try to get existing credentials
+        esriId.checkSignInStatus(oauthInfo.portalUrl + "/sharing")
+            .then(function() {
+                console.log("User is signed in");
+                // Proceed with your app initialization
+            })
+            .catch(function() {
+                // No stored credentials, prompt for login
+                console.log("User is not signed in");
+                esriId.getCredential(oauthInfo.portalUrl + "/sharing")
+                    .then(function(credential) {
+                        console.log("Successfully signed in");
+                        // Proceed with your app initialization
+                    });
+            });
 });

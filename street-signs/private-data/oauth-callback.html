@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ArcGIS OAuth Callback</title>
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <script>
+        require([
+            "esri/identity/IdentityManager",
+            "esri/identity/OAuthInfo"
+        ], function(esriId, OAuthInfo) {
+            // Ensure this matches the App ID in your ArcGIS Developer account
+            const oauthInfo = new OAuthInfo({
+                appId: "b66cfa1467b74b7a9815ac97c22473bf",
+                popup: true,
+                portalUrl: "https://www.arcgis.com",
+                redirectUri: window.location.origin + window.location.pathname
+            });
+
+            // Handle the OAuth callback
+            esriId.handleOAuthCallback()
+                .then(function(response) {
+                    console.log("OAuth callback successful", response);
+                    // Close the popup and return to the main application
+                    if (window.opener) {
+                        window.opener.location.reload();
+                        window.close();
+                    } else {
+                        // If not in a popup, redirect to the main application
+                        window.location.href = "../index.html";
+                    }
+                })
+                .catch(function(error) {
+                    console.error("OAuth callback error", error);
+                    alert("Authentication failed: " + error.message);
+                });
+        });
+    </script>
+</head>
+<body>
+    <h1>Authenticating...</h1>
+    <p>Please do not close this window.</p>
+</body>
+</html>
