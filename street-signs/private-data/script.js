@@ -527,42 +527,82 @@ require([
         view.ui.add(locateWidget, "top-left");
         view.ui.add(homeWidget, "top-left");
 
-        const oauthInfo = new OAuthInfo({
-            appId: "6SgB0tweNWk5N6kV",
-            popup: true,
-            // Add these properties:
-            expiration: 20160, // Token expiration in minutes (14 days)
-            persistLogin: true // Save credentials
-        });
-        
-        esriId.registerOAuthInfos([oauthInfo]);
-        
-        // Try to get existing credentials
-        esriId.checkSignInStatus(oauthInfo.portalUrl + "/sharing")
-            .then(function() {
-                console.log("User is signed in");
-                // Proceed with your app initialization
-            })
-            .catch(function() {
-                // No stored credentials, prompt for login
-                console.log("User is not signed in");
-                esriId.getCredential(oauthInfo.portalUrl + "/sharing")
-                    .then(function(credential) {
-                        console.log("Successfully signed in");
-                        // Proceed with your app initialization
-                    });
-            });
+        const portalUrl = "https://www.arcgis.com";
+        const clientId = "6SgB0tweNWk5N6kV"; // Replace with your actual Client ID
+        const layerUrl = "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/StreetSignsPrivate/FeatureServer/0";
 
-            window.addEventListener('message', function(event) {
-                // Ensure the message is from your own origin
-                if (event.origin !== window.location.origin) return;
-            
-                if (event.data.type === 'arcgis-auth-success') {
-                    console.log("Authentication successful", event.data.credential);
-                    // Handle successful authentication
-                } else if (event.data.type === 'arcgis-auth-error') {
-                    console.error("Authentication failed", event.data.error);
-                    // Handle authentication error
-                }
-            }, false);
+        // Create OAuth Info
+        const oauthInfo = new OAuthInfo({
+            appId: clientId,
+            portalUrl: portalUrl,
+            popup: true,
+            redirectUri: window.location.origin + window.location.pathname,
+            expiration: 20160, // 14 days
+            persistLogin: true
+        });
+
+        // Register OAuth Info
+        esriId.registerOAuthInfos([oauthInfo]);
+
+        // Comprehensive authentication function
+        function authenticateLayer() {
+            return esriId.checkSignInStatus(portalUrl + "/sharing")
+                .catch(function() {
+                    // If not signed in, attempt to get credentials
+                    return esriId.getCredential(layerUrl)
+                        .then(function(credential) {
+                            console.log("Layer authentication successful", credential);
+                            return credential;
+                        });
+                });
+        }
+
+        // Error handling and retry mechanism
+        function handleLayerAuthentication() {
+            authenticateLayer()
+                .then(function(credential) {
+                    console.log("Authenticated successfully", credential);
+                    
+                    // Optional: Store credential details securely
+                    try {
+                        localStorage.setItem('arcgis_layer_token', JSON.stringify({
+                            token: credential.token,
+                            expires: credential.expires,
+                            server: credential.server
+                        }));
+                    } catch (storageError) {
+                        console.warn("Could not store credentials", storageError);
+                    }
+                })
+                .catch(function(error) {
+                    console.error("Authentication failed", error);
+                    
+                    // Attempt manual credential registration if needed
+                    if (error.name === "request:server" && error.message.includes("tokenServiceUrl is undefined")) {
+                        try {
+                            // Attempt to manually register the token service
+                            esriId.registerServers([layerUrl]);
+                        } catch (registerError) {
+                            console.error("Failed to register servers", registerError);
+                        }
+                    }
+                });
+        }
+
+        // Initial authentication attempt
+        handleLayerAuthentication();
+
+        // Optional: Attach to window for manual retry if needed
+        window.retryLayerAuthentication = handleLayerAuthentication;
+
+        // Listen for credential events
+        esriId.on('credential-create', function(event) {
+            console.log("New credential created", event.credential);
+        });
+
+        esriId.on('credential-destroy', function() {
+            console.log("Credential destroyed");
+            // Clear stored token
+            localStorage.removeItem('arcgis_layer_token');
+        });
 });
