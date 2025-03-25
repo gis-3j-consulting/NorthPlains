@@ -527,7 +527,7 @@ require([
         view.ui.add(locateWidget, "top-left");
         view.ui.add(homeWidget, "top-left");
 
-        const portalUrl = "https://www.arcgis.com";
+        const portalUrl = "https://www.3j.maps.arcgis.com";
         const clientId = "6SgB0tweNWk5N6kV"; // Replace with your actual Client ID
         const layerUrl = "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/StreetSignsPrivate/FeatureServer/0";
 
