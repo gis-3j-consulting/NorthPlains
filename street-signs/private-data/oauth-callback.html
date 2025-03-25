@@ -3,37 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <title>ArcGIS OAuth Callback</title>
-    <script src="https://js.arcgis.com/4.29/"></script>
+    <script src="https://js.arcgis.com/4.28/"></script>
     <script>
         require([
             "esri/identity/IdentityManager",
             "esri/identity/OAuthInfo"
         ], function(esriId, OAuthInfo) {
-            // Ensure this matches the App ID in your ArcGIS Developer account
-            const oauthInfo = new OAuthInfo({
-                appId: "6SgB0tweNWk5N6kV",
-                popup: true,
-                portalUrl: "https://www.arcgis.com",
-                redirectUri: window.location.origin + window.location.pathname
-            });
+            // Parse the URL parameters
+            function getParameterByName(name, url = window.location.href) {
+                name = name.replace(/[\[\]]/g, '\\$&');
+                var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                    results = regex.exec(url);
+                if (!results) return null;
+                if (!results[2]) return '';
+                return decodeURIComponent(results[2].replace(/\+/g, ' '));
+            }
 
-            // Handle the OAuth callback
-            esriId.handleOAuthCallback()
-                .then(function(response) {
-                    console.log("OAuth callback successful", response);
-                    // Close the popup and return to the main application
+            // Retrieve the code and state from the URL
+            const code = getParameterByName('code');
+            const state = getParameterByName('state');
+
+            // Verify the state to prevent CSRF attacks
+            try {
+                const parsedState = JSON.parse(decodeURIComponent(state));
+                
+                // Configure OAuth Info
+                const oauthInfo = new OAuthInfo({
+                    appId: "6SgB0tweNWk5N6kV", // Replace with your actual Client ID
+                    popup: true,
+                    portalUrl: "https://www.arcgis.com",
+                    redirectUri: window.location.origin + window.location.pathname
+                });
+
+                // Register the OAuth Info
+                esriId.registerOAuthInfos([oauthInfo]);
+
+                // Obtain the credentials
+                esriId.getCredential(oauthInfo.portalUrl + "/sharing", {
+                    oAuthCode: code
+                })
+                .then(function(credential) {
+                    console.log("Successfully obtained credentials", credential);
+                    
+                    // Close popup or redirect
                     if (window.opener) {
-                        window.opener.location.reload();
+                        window.opener.postMessage({
+                            type: 'arcgis-auth-success',
+                            credential: credential
+                        }, window.location.origin);
                         window.close();
                     } else {
-                        // If not in a popup, redirect to the main application
+                        // Redirect to main application if not in a popup
                         window.location.href = "../index.html";
                     }
                 })
                 .catch(function(error) {
-                    console.error("OAuth callback error", error);
-                    alert("Authentication failed: " + error.message);
+                    console.error("Error obtaining credentials", error);
+                    
+                    // Communicate error back to opener
+                    if (window.opener) {
+                        window.opener.postMessage({
+                            type: 'arcgis-auth-error',
+                            error: error
+                        }, window.location.origin);
+                        window.close();
+                    } else {
+                        alert("Authentication failed: " + error.message);
+                    }
                 });
+
+            } catch (error) {
+                console.error("Invalid state parameter", error);
+                alert("Authentication failed: Invalid state");
+            }
         });
     </script>
 </head>

@@ -552,4 +552,17 @@ require([
                         // Proceed with your app initialization
                     });
             });
+
+            window.addEventListener('message', function(event) {
+                // Ensure the message is from your own origin
+                if (event.origin !== window.location.origin) return;
+            
+                if (event.data.type === 'arcgis-auth-success') {
+                    console.log("Authentication successful", event.data.credential);
+                    // Handle successful authentication
+                } else if (event.data.type === 'arcgis-auth-error') {
+                    console.error("Authentication failed", event.data.error);
+                    // Handle authentication error
+                }
+            }, false);
 });
