@@ -527,82 +527,28 @@ require([
         view.ui.add(locateWidget, "top-left");
         view.ui.add(homeWidget, "top-left");
 
-        const portalUrl = "https://www.3j.maps.arcgis.com";
-        const clientId = "6SgB0tweNWk5N6kV"; // Replace with your actual Client ID
-        const layerUrl = "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/StreetSignsPrivate/FeatureServer/0";
+        var info = new OAuthInfo({
+            appId: "6SgB0tweNWk5N6kV",  // Replace with your client ID
+            popup: false
+          });
+        
+          esriId.registerOAuthInfos([info]);
+        
+          esriId.checkSignInStatus(info.portalUrl + "/sharing")
+            .then(function() {
+              console.log("User is already logged in.");
+            })
+            .catch(function() {
+              esriId.getCredential(info.portalUrl + "/sharing");
+            });
 
-        // Create OAuth Info
-        const oauthInfo = new OAuthInfo({
-            appId: clientId,
-            portalUrl: portalUrl,
-            popup: true,
-            redirectUri: window.location.origin + window.location.pathname,
-            expiration: 20160, // 14 days
-            persistLogin: true
-        });
-
-        // Register OAuth Info
-        esriId.registerOAuthInfos([oauthInfo]);
-
-        // Comprehensive authentication function
-        function authenticateLayer() {
-            return esriId.checkSignInStatus(portalUrl + "/sharing")
-                .catch(function() {
-                    // If not signed in, attempt to get credentials
-                    return esriId.getCredential(layerUrl)
-                        .then(function(credential) {
-                            console.log("Layer authentication successful", credential);
-                            return credential;
-                        });
-                });
-        }
-
-        // Error handling and retry mechanism
-        function handleLayerAuthentication() {
-            authenticateLayer()
-                .then(function(credential) {
-                    console.log("Authenticated successfully", credential);
-                    
-                    // Optional: Store credential details securely
-                    try {
-                        localStorage.setItem('arcgis_layer_token', JSON.stringify({
-                            token: credential.token,
-                            expires: credential.expires,
-                            server: credential.server
-                        }));
-                    } catch (storageError) {
-                        console.warn("Could not store credentials", storageError);
-                    }
-                })
-                .catch(function(error) {
-                    console.error("Authentication failed", error);
-                    
-                    // Attempt manual credential registration if needed
-                    if (error.name === "request:server" && error.message.includes("tokenServiceUrl is undefined")) {
-                        try {
-                            // Attempt to manually register the token service
-                            esriId.registerServers([layerUrl]);
-                        } catch (registerError) {
-                            console.error("Failed to register servers", registerError);
-                        }
-                    }
-                });
-        }
-
-        // Initial authentication attempt
-        handleLayerAuthentication();
-
-        // Optional: Attach to window for manual retry if needed
-        window.retryLayerAuthentication = handleLayerAuthentication;
-
-        // Listen for credential events
-        esriId.on('credential-create', function(event) {
-            console.log("New credential created", event.credential);
-        });
-
-        esriId.on('credential-destroy', function() {
-            console.log("Credential destroyed");
-            // Clear stored token
-            localStorage.removeItem('arcgis_layer_token');
-        });
+            if (localStorage.getItem('esriToken')) {
+                // Reuse the stored token
+                esriId.initialize(JSON.parse(localStorage.getItem('esriToken')));
+              }
+              
+              esriId.on("credential-create", function(response) {
+                // Store the token when it's created
+                localStorage.setItem('esriToken', JSON.stringify(esriId.toJSON()));
+              });
 });
