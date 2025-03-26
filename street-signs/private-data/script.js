@@ -526,29 +526,4 @@ require([
 
         view.ui.add(locateWidget, "top-left");
         view.ui.add(homeWidget, "top-left");
-
-        var info = new OAuthInfo({
-            appId: "6SgB0tweNWk5N6kV",  // Replace with your client ID
-            popup: false
-          });
-        
-          esriId.registerOAuthInfos([info]);
-        
-          esriId.checkSignInStatus(info.portalUrl + "/sharing")
-            .then(function() {
-              console.log("User is already logged in.");
-            })
-            .catch(function() {
-              esriId.getCredential(info.portalUrl + "/sharing");
-            });
-
-            if (localStorage.getItem('esriToken')) {
-                // Reuse the stored token
-                esriId.initialize(JSON.parse(localStorage.getItem('esriToken')));
-              }
-              
-              esriId.on("credential-create", function(response) {
-                // Store the token when it's created
-                localStorage.setItem('esriToken', JSON.stringify(esriId.toJSON()));
-              });
 });
