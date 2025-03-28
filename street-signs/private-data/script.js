@@ -529,24 +529,44 @@ require([
 
         var info = new OAuthInfo({
             appId: "6SgB0tweNWk5N6kV",  
-            popup: false
-          });
+            popup: false,
+            expiration: 60 * 24 * 7, 
+            portalUrl: "https://3j.maps.arcgis.com/"
+        });
         
-          esriId.registerOAuthInfos([info]);
+        esriId.registerOAuthInfos([info]);
         
-          esriId.checkSignInStatus(info.portalUrl + "/sharing")
+        function logTokenExpiration(credential) {
+            if (credential && credential.expires) {
+                const expirationDate = new Date(credential.expires);
+                const currentDate = new Date();
+                const timeRemaining = expirationDate - currentDate;
+                
+                console.log("Token Expiration Details:");
+                console.log("Expires at:", expirationDate.toLocaleString());
+                console.log("Time remaining:", Math.round(timeRemaining / (1000 * 60)), "minutes");
+            }
+        }
+        
+        esriId.checkSignInStatus(info.portalUrl + "/sharing")
             .then(function() {
-              console.log("User is already logged in.");
+                console.log("User is already logged in.");
+                logTokenExpiration(esriId.credentials[0]);
             })
             .catch(function() {
-              esriId.getCredential(info.portalUrl + "/sharing");
+                esriId.getCredential(info.portalUrl + "/sharing", {
+                    oAuthInfo: info
+                });
             });
-
-            if (localStorage.getItem('esriToken')) {
-                esriId.initialize(JSON.parse(localStorage.getItem('esriToken')));
-              }
-              
-              esriId.on("credential-create", function(response) {
-                localStorage.setItem('esriToken', JSON.stringify(esriId.toJSON()));
-              });
+        
+        if (localStorage.getItem('esriToken')) {
+            const storedToken = JSON.parse(localStorage.getItem('esriToken'));
+            esriId.initialize(storedToken);
+            logTokenExpiration(esriId.credentials[0]);
+        }
+        
+        esriId.on("credential-create", function(response) {
+            localStorage.setItem('esriToken', JSON.stringify(esriId.toJSON()));
+            logTokenExpiration(response.credential);
+        });
 });
