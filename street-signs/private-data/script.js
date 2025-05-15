@@ -530,7 +530,7 @@ require([
         var info = new OAuthInfo({
             appId: "6SgB0tweNWk5N6kV",  
             popup: false,
-            expiration: 60 * 24 * 7, 
+            expiration: 60 * 24,
             portalUrl: "https://3j.maps.arcgis.com/"
         });
         

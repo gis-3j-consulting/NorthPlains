@@ -7,231 +7,29 @@
   <link rel="stylesheet" href="https://js.arcgis.com/4.31/esri/themes/light/main.css">
   <script src="https://js.arcgis.com/4.31/"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-  <style>
-    body {
-        padding: 0;
-        margin: 0;
-    }
-
-    #viewDiv {
-        height: 100vh;
-        width: 100%;
-        margin: 0;
-        padding: 0;
-        position: relative;
-        cursor: auto;
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 30%;
-        height: 30%;
-        overflow: auto;
-        background-color: rgba(255,255,255,0.6);
-    }
-
-    #statusFilter {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        z-index: 1000;
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
-
-    #statusFilter button {
-        display: block;
-        margin-bottom: 5px;
-        width: 150px;
-    }
-
-    #typeFilter {
-        position: absolute;
-        top: 10px;
-        right: 200px;
-        z-index: 1000;
-        background: white;
-        padding: 10px;
-        border-radius: 5px;
-        border: 1px solid #ccc;
-    }
-
-    #typeFilter button {
-        display: block;
-        margin-bottom: 5px;
-        width: 150px;
-    }
-
-    .modal {
-        display: none;
-        position: fixed;
-        z-index: 1000;
-        left: 50%;
-        top: 50%;
-        transform: translate(-50%, -50%);
-        width: 30%;
-        height: 40%;
-        padding: 30px;
-        overflow: auto;
-        background-color: rgba(255,255,255,0.8);
-    }
-
-    textarea {
-        width: 100%;
-    }
-
-    .dropdown {
-        font-size: 16px;
-        padding: 10px;
-        width: 100%;
-        border: 1px solid #ccc;
-        background-color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        margin-bottom: 20px;
-    }
-
-    .modalBtn {
-        margin-top: 10px;
-        padding: 10px;
-        border: 1px solid #ccc;
-        background-color: white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-    }
-
-    .modalBtn:hover {
-        background-color: rgb(150, 150, 150);
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    }
-
-    #downloadReportBtn, .reportDate {
-        margin: 10px;
-    }
-
-    #addPointButton {
-        border: 1px solid #ccc;
-        background-color: white;
-        font-size: 2.5em;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        border-radius: 4px;
-        position: absolute;
-        top: 20px;
-        left: 60px;
-        z-index: 1000;
-        width: 60px;
-        height: 60px;
-        text-align: center;
-    }
-
-    #downloadReport {
-        position: absolute;
-        bottom: 40px;
-        left: 20px;
-        z-index: 1000;
-        background-color: rgba(220, 220, 220, 1);
-        box-shadow: 0 6px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    #addPointButton:hover {
-        background-color: rgba(220, 220, 220, 1);
-        box-shadow: 0 6px 4px rgba(0, 0, 0, 0.3);
-    }
-
-    #notification-box {
-        display: flex;
-    }
-    .notification-input {
-        display: none;
-    }
-
-    #locationConfirmButton {
-        margin-top: 10px;
-        position: absolute;
-        top: 20px;
-        left: 100px;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        width: 60px;
-        height: 60px;
-        display: none;
-        z-index: 1000;
-        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        cursor: pointer;
-    }
-
-    #locationConfirmButton:hover {
-        background-color: #45a049;
-    }
-
-    #reportsTableContainer {
-        position: absolute; 
-        bottom: 10px; 
-        right: 20px; 
-        z-index: 1000; 
-        background: white; 
-        padding: 10px; 
-        border-radius: 5px; 
-        max-height: 300px; 
-        width: 600px; 
-        overflow-y: auto; 
-        display: none;
-    }
-
-    #reports-table {
-        width: 100%;
-        border-collapse: collapse;
-    }
-
-    #toggleTableBtn {
-        position: absolute;
-        top: 250px;
-        right: 20px;
-        z-index: 1000;
-        padding: 8px 16px;
-        background: white;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-
-    .table-th {
-        padding: 8px;
-        border: 1px solid #ddd;
-        background: #f4f4f4;
-    }
-  </style>
+  <link rel="stylesheet" href="../style.css">
 </head>
 <body>
   <div id="viewDiv"></div>
-  <button id="addPointButton" title="Add new report" >+</button>
+  <button id="addPointButton" title="Add new report"><i class="fa-solid fa-plus"></i></button>
   <button id="locationConfirmButton">
     <i class="fa-solid fa-check"></i>
   </button>
-  <div id="statusFilter">
+  <div id="statusFilter" class="filter-panel">
     <h4>Status Filter</h4>
-    <button id="toggleNew" class="statusBtn" data-status="New" style="background-color: lightgreen;">New</button>
+    <button id="toggleNew" class="statusBtn active" data-status="New">New</button>
     <button id="toggleDepartmentNotified" class="statusBtn" data-status="Department Notified">Department Notified</button>
     <button id="toggleCrewsDispatched" class="statusBtn" data-status="Crews Dispatched">Crews Dispatched</button>
     <button id="toggleInProgress" class="statusBtn" data-status="In Progress">In Progress</button>
     <button id="toggleResolved" class="statusBtn" data-status="Resolved">Resolved</button>
   </div>
 
-  <div id="typeFilter">
+  <div id="typeFilter" class="filter-panel">
     <h4>Type Filter</h4>
-    <button id="togglePowerOutage" class="typeBtn" data-type="Power Outage" style="background-color: lightgreen;">Power Outage</button>
-    <button id="toggleWaterMain" class="typeBtn" data-type="Water Main Break" style="background-color: lightgreen;">Water Main Break</button>
-    <button id="togglePavement" class="typeBtn" data-type="Pavement Issue" style="background-color: lightgreen;">Pavement Issue</button>
-    <button id="toggleOther" class="typeBtn" data-type="Other" style="background-color: lightgreen;">Other</button>
+    <button id="togglePowerOutage" class="typeBtn active" data-type="Power Outage">Power Outage</button>
+    <button id="toggleWaterMain" class="typeBtn active" data-type="Water Main Break">Water Main Break</button>
+    <button id="togglePavement" class="typeBtn active" data-type="Pavement Issue">Pavement Issue</button>
+    <button id="toggleOther" class="typeBtn active" data-type="Other">Other</button>
   </div>
   
   <div id="downloadReport">
@@ -241,7 +39,7 @@
     <label for="endDate">End Date:</label>
     <input type="date" class="reportDate" id="endDate">
     
-    <button id="downloadReportBtn" class="modalBtn">Download Report</button>
+    <button id="downloadReportBtn">Download Report</button>
   </div>
 
   <div id="reportModal" class="modal">
@@ -253,18 +51,21 @@
             <option value="Pavement Issue">Pavement Issue</option>
             <option value="Other">Other</option>
         </select>
-        <label><b>Location: </b></label>
-        <textarea id="addressField" class="text-input" rows="2" cols="50" placeholder="Add an address or location..."></textarea>
-        <label><b>Add a Comment: </b></label>
-        <textarea id="commentField" class="text-input" rows="5" cols="50" placeholder="Type your comment here..."></textarea>
-        <div id="notification-box"><label><b>Resident wants to be notified about updates</b></label><input type="checkbox" id="notification-check" value="no"></div>
-            <textarea id="nameField" class="notification-input" rows="1" cols="30" placeholder="Name..."></textarea>
-            <textarea id="emailField" class="notification-input" rows="1" cols="30" placeholder="Email Address..."></textarea>
-            <textarea id="phoneField" class="notification-input" rows="1" cols="30" placeholder="Phone number..."></textarea>
-        <button id="submitComment" class="modalBtn">Submit Comment</button>
-        <button id="cancelComment" class="modalBtn">Cancel</button>
-        <button id="adjustLocation" class="modalBtn">Adjust Location</button>
-
+        <label>Location:</label>
+        <textarea id="addressField" class="text-input" rows="2" placeholder="Add an address or location..."></textarea>
+        <label>Add a Comment:</label>
+        <textarea id="commentField" class="text-input" rows="5" placeholder="Type your comment here..."></textarea>
+        <div id="notification-box">
+          <label><input type="checkbox" id="notification-check"> Resident wants to be notified about updates</label>
+        </div>
+        <textarea id="nameField" class="notification-input" rows="1" placeholder="Name..."></textarea>
+        <textarea id="emailField" class="notification-input" rows="1" placeholder="Email Address..."></textarea>
+        <textarea id="phoneField" class="notification-input" rows="1" placeholder="Phone number..."></textarea>
+        <div>
+          <button id="submitComment" class="modalBtn">Submit Report</button>
+          <button id="cancelComment" class="modalBtn">Cancel</button>
+          <button id="adjustLocation" class="modalBtn">Adjust Location</button>
+        </div>
     </div>
   </div>
 
