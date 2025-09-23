@@ -120,13 +120,14 @@
             "esri/Map",
             "esri/views/MapView",
             "esri/layers/FeatureLayer",
+            "esri/layers/TileLayer",
             "esri/Graphic",
             "esri/renderers/UniqueValueRenderer",
             "esri/widgets/Popup",
             "esri/widgets/Locate",
             "esri/identity/IdentityManager",
             "esri/identity/OAuthInfo"
-        ], function (Map, MapView, FeatureLayer, Graphic, UniqueValueRenderer, Popup, Locate, esriId, OAuthInfo) {
+        ], function (Map, MapView, FeatureLayer, TileLayer, Graphic, UniqueValueRenderer, Popup, Locate, esriId, OAuthInfo) {
             
             let editMode = "selecting";
             let tempGraphic = null;
@@ -137,6 +138,7 @@
             const saveButton = document.getElementById("saveButton");
             const idInput = document.getElementById("id-input");
             const addressInput = document.getElementById("address-input");
+            const commentsInput = document.getElementById("comments");
 
             selectButton.addEventListener("click", function() {
                 editMode = "selecting";
@@ -147,6 +149,7 @@
                 addressInput.style.cursor = "not-allowed";
                 idInput.value = "";
                 addressInput.value = "";
+                commentsInput.value = "";
                 idInput.readOnly = true;
                 addressInput.readOnly = true;
 
@@ -174,6 +177,7 @@
                 addressInput.style.cursor = "text";
                 idInput.value = "";
                 addressInput.value = "";
+                commentsInput.value = "";
                 idInput.readOnly = false;
                 addressInput.readOnly = false;
             });
@@ -194,44 +198,30 @@
                 }
             });
 
-            const commentRenderer = new UniqueValueRenderer({
-                field: "Comments",
-                defaultSymbol: {
+            const commentRenderer = {
+                type: "simple",
+                symbol: {
                     type: "simple-marker",
-                    color: "blue",
-                    size: 8,
+                    color: "#eb67a5",
+                    size: 10,
                     outline: {
-                        color: "white",
+                        color: "#ffffff",
                         width: 1
                     }
                 },
-                uniqueValueInfos: [
+                visualVariables: [
                     {
-                        value: "Needs Adjustment",
-                        symbol: {
-                            type: "simple-marker",
-                            color: "red",
-                            size: 12,
-                            outline: {
-                                color: "white",
-                                width: 1
+                        type: "color",
+                        field: "DarrellComments",
+                        stops: [
+                            {
+                                value: null,
+                                color: "#93f28a"
                             }
-                        }
-                    },
-                    {
-                        value: "Adjusted",
-                        symbol: {
-                            type: "simple-marker",
-                            color: "green",
-                            size: 12,
-                            outline: {
-                                color: "white",
-                                width: 1
-                            }
-                        }
+                        ]
                     }
                 ]
-            });
+            };
 
             const waterMeterLayer = new FeatureLayer({
                 url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/WaterMetersRevisit/FeatureServer/0",
@@ -240,6 +230,11 @@
                 editable: true
             });
 
+            var aerialImagery = new TileLayer({
+                url: "https://tiles.arcgis.com/tiles/pZZTDhBBLO3B9dnl/arcgis/rest/services/NPaerial24_online/MapServer"
+            });
+
+            map.add(aerialImagery);
             map.add(waterMeterLayer);
 
             view.on("click", function(event) {
@@ -274,6 +269,7 @@
 
                             idInput.value = feature.attributes.SerialNumb || "";
                             addressInput.value = feature.attributes.Address || "";
+                            commentsInput.value = feature.attributes.DarrellComments || "";
                             saveButton.disabled = false;
 
                             console.log("Selected Water Meter:", feature.attributes);
@@ -354,6 +350,7 @@
                             alert("New water meter added successfully.");
                             idInput.value = "";
                             addressInput.value = "";
+                            commentsInput.value = "";
                             document.getElementById("comments").value = "";
                         } else {
                             alert("Failed to add new water meter.");
@@ -366,6 +363,7 @@
                     const updatedAttributes = {
                         DarrellComments: comments
                     };
+
                     const objectIdField = waterMeterLayer.objectIdField || "OBJECTID";
                     const updatedGraphic = new Graphic({
                         geometry: geometry,
@@ -383,6 +381,7 @@
                             alert("Water meter updated successfully.");
                             idInput.value = "";
                             addressInput.value = "";
+                            commentsInput.value = "";
                             document.getElementById("comments").value = "";
                             activeWaterMeter = null;
                         } else {
