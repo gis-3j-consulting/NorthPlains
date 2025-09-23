@@ -101,7 +101,7 @@
     <div id="sidebar">
         <div id="button-container">
             <button class="editing-button active" id="selectButton">Select</button>
-            <button class="editing-button" id="editButton">Edit</button>
+            <button class="editing-button" id="editButton" disabled>Edit</button>
             <button class="editing-button" id="addButton">Add</button>
         </div>
             <div style="font-size:13px;margin:6px 0;color:#333">Tip: Use Select to pick a meter; in Edit mode click the map to choose a new location.</div>
@@ -270,6 +270,7 @@
                             idInput.value = feature.attributes.SerialNumb || "";
                             addressInput.value = feature.attributes.Address || "";
                             commentsInput.value = feature.attributes.DarrellComments || "";
+                            editButton.disabled = false;
                             saveButton.disabled = false;
 
                             console.log("Selected Water Meter:", feature.attributes);
@@ -298,6 +299,7 @@
                     view.graphics.add(tempGraphic);
                     activeWaterMeter = null;
                     saveButton.disabled = false;
+                    editButton.disabled = true;
                 } else if (editMode === "editing") {
                     if (tempGraphic) {
                         view.graphics.remove(tempGraphic);
@@ -396,6 +398,7 @@
 
                 view.graphics.remove(tempGraphic);
                 saveButton.disabled = true;
+                editButton.disabled = true;
             })
 
             var locateWidget = new Locate({
