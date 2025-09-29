@@ -11,15 +11,16 @@
             font-family: Arial, sans-serif;
             margin: 20px;
             display: flex;
+            height: 90vh;
         }
         #view {
             flex:1;
-            height: 90vh;
+            height: 85vh;
             touch-action: none;
         }
         #sidebar {
             flex: 0.5;
-            height: 90vh;
+            height: 90%;
             padding: 20px;
             display: flex;
             flex-direction: column;
@@ -64,9 +65,9 @@
             font-size: 14px;
         }
 
-        #comments {
+        .multi-line-text {
             width: 100%;
-            min-height: 100px;
+            min-height: 80px;
             padding: 10px;
             box-sizing: border-box;
             border: 1px solid #ccc;
@@ -75,6 +76,9 @@
             font-family: inherit;
             font-size: 14px;
             margin-top: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            vertical-align: top;
         }
 
         #saveButton {
@@ -94,9 +98,41 @@
             color: #666;
             margin-bottom: -5px;
         }
+
+        #debugLog {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        #debugToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
     </style>
 </head>
 <body>
+    <button id="debugToggle">Show Debug</button>
+    <div id="debugLog"></div>
+    
     <div id="view"></div>
     <div id="sidebar">
         <div id="button-container">
@@ -110,8 +146,10 @@
             <input class="attribute-input" type="text" id="id-input" name="id-input" readonly> <br>
             <label for="address-input">Subscriber Address</label>
             <input class="attribute-input" type="text" id="address-input" name="address-input" readonly>
+            <label for="address-input">Reason to revisit: </label>
+            <textarea class="multi-line-text" id="reason-input" name="reason-input" rows="1" cols="10" readonly></textarea>
         </div>
-        <input type="textarea" id="comments" placeholder="Enter comments here..." rows="6" cols="10">
+        <textarea class="multi-line-text" id="comments" placeholder="Enter comments here..." rows="6" cols="10"></textarea>
         <button id="saveButton" class="editing-button" disabled>Save Changes</button>
     </div>
 
@@ -138,6 +176,7 @@
             const saveButton = document.getElementById("saveButton");
             const idInput = document.getElementById("id-input");
             const addressInput = document.getElementById("address-input");
+            const reasonInput = document.getElementById("reason-input");
             const commentsInput = document.getElementById("comments");
 
             selectButton.addEventListener("click", function() {
@@ -178,6 +217,7 @@
                 idInput.value = "";
                 addressInput.value = "";
                 commentsInput.value = "";
+                reasonInput.value = "";
                 idInput.readOnly = false;
                 addressInput.readOnly = false;
             });
@@ -270,6 +310,7 @@
                             idInput.value = feature.attributes.SerialNumb || "";
                             addressInput.value = feature.attributes.Address || "";
                             commentsInput.value = feature.attributes.DarrellComments || "";
+                            reasonInput.value = feature.attributes.RevReason || "";
                             editButton.disabled = false;
                             saveButton.disabled = false;
 
@@ -353,7 +394,7 @@
                             idInput.value = "";
                             addressInput.value = "";
                             commentsInput.value = "";
-                            document.getElementById("comments").value = "";
+                            reasonInput.value = "";
                         } else {
                             alert("Failed to add new water meter.");
                         }
@@ -384,7 +425,7 @@
                             idInput.value = "";
                             addressInput.value = "";
                             commentsInput.value = "";
-                            document.getElementById("comments").value = "";
+                            activeInput.value = "";
                             activeWaterMeter = null;
                         } else {
                             alert("Failed to update water meter.");
@@ -412,6 +453,10 @@
 
             view.ui.add(locateWidget, "top-left");
 
+            addDebugLog("Setting up OAuth...");
+            const currentUrl = window.location.href;
+            const redirectUri = currentUrl.split('?')[0]; 
+
             let info = new OAuthInfo({
                 appId: "Mjh66RRePmRFRBGh",
                 popup: false,
@@ -421,23 +466,28 @@
 
             esriId.registerOAuthInfos([info]);
 
-            esriId.checkSignInStatus(info.portalUrl + "/sharing").then(
-                function() {
-                    console.log("User is signed in");
+            const storedToken = localStorage.getItem("esriToken");
+            if (storedToken) {
+                try {
+                    const parsedToken = JSON.parse(storedToken);
+                    if (parsedToken.expires > Date.now()) {
+                        esriId.initialize(parsedToken);
+                    } else {
+                        localStorage.removeItem("esriToken");
+                    }
+                } catch (e) {
+                    localStorage.removeItem("esriToken");
                 }
-            ).catch(
-                function() {
-                    esriId.getCredential(info.portalUrl + "/sharing");
-                }
-            );
-
-            if (localStorage.getItem("esriToken")) {
-                const storedToken = JSON.parse(localStorage.getItem("esriToken"));
-                esriId.initialize(storedToken);
             }
 
             esriId.on("credential-create", function(response) {
-                localStorage.setItem("esriToken", JSON.stringify(esriId.toJSON()));
+                const tokenData = esriId.toJSON();
+                localStorage.setItem("esriToken", JSON.stringify(tokenData));
+            });
+
+            esriId.checkSignInStatus(info.portalUrl + "/sharing")
+                .catch(function() {
+                    return esriId.getCredential(info.portalUrl + "/sharing");
             });
             
         });
