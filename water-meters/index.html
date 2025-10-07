@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Water Meters Adjustment</title>
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css"> 
+        <!-- above imports a stylesheet on how things will look within ArcGIS Maps SDK, below is the actual script/functionality -->
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            display: flex;
+            height: 90vh;
+        }
+        #view {
+            flex:1;
+            height: 85vh;
+            touch-action: none;
+        }
+        #sidebar {
+            flex: 0.5;
+            height: 90%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        #button-container {
+            display: flex;
+            gap: 5px;
+        }
+
+        .editing-button {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            cursor: pointer;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            background-color: #f8f8f8;
+        }
+
+        .editing-button.active {
+            background-color: #0079c1;
+            color: white;
+            border-color: #0079c1;
+        }
+
+        #infoPanel {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .attribute-input {
+            width: 100%;
+            padding: 10px;
+            box-sizing: border-box;
+            cursor: not-allowed;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .multi-line-text {
+            width: 100%;
+            min-height: 80px;
+            padding: 10px;
+            box-sizing: border-box;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+            font-family: inherit;
+            font-size: 14px;
+            margin-top: auto;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            vertical-align: top;
+        }
+
+        #saveButton {
+            margin-top: 10px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+        }
+
+        #saveButton:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: -5px;
+        }
+
+        #debugLog {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 300px;
+            max-height: 200px;
+            overflow-y: auto;
+            font-size: 12px;
+            z-index: 1000;
+            display: none;
+        }
+        
+        #debugToggle {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            z-index: 1001;
+            background: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button id="debugToggle">Show Debug</button>
+    <div id="debugLog"></div>
+    
+    <div id="view"></div>
+    <div id="sidebar">
+        <div id="button-container">
+            <button class="editing-button active" id="selectButton">Select</button>
+            <button class="editing-button" id="editButton" disabled>Edit</button>
+            <button class="editing-button" id="addButton">Add</button>
+        </div>
+            <div style="font-size:13px;margin:6px 0;color:#333">Tip: Use Select to pick a meter; in Edit mode click the map to choose a new location.</div>
+        <div id="infoPanel">
+            <label for="id-input">Water Meter ID</label>
+            <input class="attribute-input" type="text" id="id-input" name="id-input" readonly> <br>
+            <label for="address-input">Subscriber Address</label>
+            <input class="attribute-input" type="text" id="address-input" name="address-input" readonly>
+            <label for="address-input">Reason to revisit: </label>
+            <textarea class="multi-line-text" id="reason-input" name="reason-input" rows="1" cols="10" readonly></textarea>
+        </div>
+        <textarea class="multi-line-text" id="comments" placeholder="Enter comments here..." rows="6" cols="10"></textarea>
+        <button id="saveButton" class="editing-button" disabled>Save Changes</button>
+    </div>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/layers/FeatureLayer",
+            "esri/layers/TileLayer",
+            "esri/Graphic",
+            "esri/renderers/UniqueValueRenderer",
+            "esri/widgets/Popup",
+            "esri/widgets/Locate",
+            "esri/identity/IdentityManager",
+            "esri/identity/OAuthInfo"
+        ], function (Map, MapView, FeatureLayer, TileLayer, Graphic, UniqueValueRenderer, Popup, Locate, esriId, OAuthInfo) {
+            
+            let editMode = "selecting";
+            let tempGraphic = null;
+            let activeWaterMeter = null;
+            const selectButton = document.getElementById("selectButton");
+            const editButton = document.getElementById("editButton");
+            const addButton = document.getElementById("addButton");
+            const saveButton = document.getElementById("saveButton");
+            const idInput = document.getElementById("id-input");
+            const addressInput = document.getElementById("address-input");
+            const reasonInput = document.getElementById("reason-input");
+            const commentsInput = document.getElementById("comments");
+
+            selectButton.addEventListener("click", function() {
+                editMode = "selecting";
+                selectButton.classList.add("active");
+                editButton.classList.remove("active");
+                addButton.classList.remove("active");
+                idInput.style.cursor = "not-allowed";
+                addressInput.style.cursor = "not-allowed";
+                idInput.value = "";
+                addressInput.value = "";
+                commentsInput.value = "";
+                idInput.readOnly = true;
+                addressInput.readOnly = true;
+
+                view.graphics.remove(tempGraphic);
+                saveButton.disabled = true;
+            });
+
+            editButton.addEventListener("click", function() {
+                editMode = "editing";
+                editButton.classList.add("active");
+                addButton.classList.remove("active");
+                selectButton.classList.remove("active");
+                idInput.style.cursor = "not-allowed";
+                addressInput.style.cursor = "not-allowed";
+                idInput.readOnly = true;
+                addressInput.readOnly = true;
+            });
+
+            addButton.addEventListener("click", function() {
+                editMode = "adding";
+                addButton.classList.add("active");
+                editButton.classList.remove("active");
+                selectButton.classList.remove("active");
+                idInput.style.cursor = "text";
+                addressInput.style.cursor = "text";
+                idInput.value = "";
+                addressInput.value = "";
+                commentsInput.value = "";
+                reasonInput.value = "";
+                idInput.readOnly = false;
+                addressInput.readOnly = false;
+            });
+            
+            const map = new Map({
+                basemap: "hybrid"
+            });
+
+            const view = new MapView({
+                container: "view",
+                map: map,
+                extent: {
+                    xmin: -123.02,
+                    ymin: 45.58,
+                    xmax: -122.97,
+                    ymax: 45.615,
+                    spatialReference: { wkid: 4326 }
+                }
+            });
+
+            const commentRenderer = {
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    color: "#eb67a5",
+                    size: 10,
+                    outline: {
+                        color: "#ffffff",
+                        width: 1
+                    }
+                },
+                visualVariables: [
+                    {
+                        type: "color",
+                        field: "DarrellComments",
+                        stops: [
+                            {
+                                value: null,
+                                color: "#93f28a"
+                            }
+                        ]
+                    }
+                ]
+            };
+            const commentRendererall = {
+                type: "simple",
+                symbol: {
+                    type: "simple-marker",
+                    color: "#90ee90",
+                    size: 6,
+                    outline: {
+                        color: "#ffffff",
+                        width: 0.5
+                    }
+                }
+
+            };
+
+             const popupwatermeterall = {
+                title: "Watermeter Info",
+                content:
+                "<b>Adress:</b> {Address}<br><b>Serial Number:</b> {SerialNumb}<br><b>Location of Meter:</b> {LocationCo}",
+             };
+
+            const waterMeterLayer = new FeatureLayer({
+                url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/WaterMetersRevisit/FeatureServer/0",
+                outFields: ["*"],
+                renderer: commentRenderer,
+                editable: true,
+                definitionExpression: "Revisit = 1"
+            });
+            const waterMeterLayerall = new FeatureLayer({
+                url: "https://services3.arcgis.com/pZZTDhBBLO3B9dnl/arcgis/rest/services/WaterMetersRevisit/FeatureServer/0",
+                outFields: ["*"],
+                renderer: commentRendererall,
+                editable: false,
+                definitionExpression: "Revisit <> 1",
+                popupTemplate: popupwatermeterall
+            });
+
+            var aerialImagery = new TileLayer({
+                url: "https://tiles.arcgis.com/tiles/pZZTDhBBLO3B9dnl/arcgis/rest/services/NPaerial24_online/MapServer"
+            });
+
+            map.add(aerialImagery);
+            map.add(waterMeterLayerall);
+            map.add(waterMeterLayer);
+
+            view.on("click", function(event) {
+                if (editMode === "selecting") {
+                    view.hitTest(event).then(function(response) {
+                        const feature = response.results.find(result => result.graphic.layer === waterMeterLayer)?.graphic;
+                        if (feature) {
+                            activeWaterMeter = feature;
+                            if (tempGraphic) {
+                                view.graphics.remove(tempGraphic);
+                            }
+
+                            tempGraphic = new Graphic({
+                                geometry: feature.geometry,
+                                symbol: {
+                                    type: "simple-marker",
+                                    color: "yellow",
+                                    size: 15,
+                                    outline: {
+                                        color: "black",
+                                        width: 2
+                                    }
+                                }
+                            });
+
+                            view.graphics.add(tempGraphic);
+
+                            view.goTo({
+                                target: feature.geometry,
+                                zoom: 20
+                            });
+
+                            idInput.value = feature.attributes.SerialNumb || "";
+                            addressInput.value = feature.attributes.Address || "";
+                            commentsInput.value = feature.attributes.DarrellComments || "";
+                            reasonInput.value = feature.attributes.RevReason || "";
+                            editButton.disabled = false;
+                            saveButton.disabled = false;
+
+                            console.log("Selected Water Meter:", feature.attributes);
+                        }
+                    });
+                } else if (editMode === "adding") {
+                    if (tempGraphic) {
+                        view.graphics.remove(tempGraphic);
+                    }
+
+                    const coordinates = event.mapPoint;
+
+                    tempGraphic = new Graphic({
+                        geometry: coordinates,
+                        symbol: {
+                            type: "simple-marker",
+                            color: "yellow",
+                            size: 15,
+                            outline: {
+                                color: "black",
+                                width: 2
+                            }
+                        }
+                    });
+
+                    view.graphics.add(tempGraphic);
+                    activeWaterMeter = null;
+                    saveButton.disabled = false;
+                    editButton.disabled = true;
+                } else if (editMode === "editing") {
+                    if (tempGraphic) {
+                        view.graphics.remove(tempGraphic);
+                    }
+
+                    const coordinates = event.mapPoint;
+
+                    tempGraphic = new Graphic({
+                        geometry: coordinates,
+                        symbol: {
+                            type: "simple-marker",
+                            color: "yellow",
+                            size: 15,
+                            outline: {
+                                color: "black",
+                                width: 2
+                            }
+                        }
+                    });
+
+                    view.graphics.add(tempGraphic);
+                    saveButton.disabled = false;
+                }
+            });
+
+            document.getElementById("saveButton").addEventListener("click", function() {
+                const comments = document.getElementById("comments").value;
+                const geometry = tempGraphic.geometry;
+
+                if (editMode === "adding") {
+                    const newAttributes = {
+                        SerialNumb: idInput.value,
+                        Address: addressInput.value,
+                        Revisit: 1,
+                        DarrellComments: comments
+                    };
+
+                    const graphic = new Graphic({
+                        geometry: geometry,
+                        attributes: newAttributes
+                    });
+
+                    waterMeterLayer.applyEdits({
+                        addFeatures: [graphic]
+                    }).then(function(editsResult) {
+                        console.log("Add Edits Result:", editsResult);
+                        if (editsResult.addFeatureResults.length > 0) {
+                            const addedFeature = editsResult.addFeatureResults[0];
+                            console.log("Feature added with ObjectID:", addedFeature.objectId);
+                            alert("New water meter added successfully.");
+                            idInput.value = "";
+                            addressInput.value = "";
+                            commentsInput.value = "";
+                            reasonInput.value = "";
+                        } else {
+                            alert("Failed to add new water meter.");
+                        }
+                    }).catch(function(error) {
+                        console.error("Error adding feature:", error);
+                        alert("Error adding new water meter.");
+                    });
+                } else if (editMode === "editing") {
+                    const updatedAttributes = {
+                        DarrellComments: comments
+                    };
+
+                    const objectIdField = waterMeterLayer.objectIdField || "OBJECTID";
+                    const updatedGraphic = new Graphic({
+                        geometry: geometry,
+                        attributes: Object.assign({}, updatedAttributes, {
+                            [objectIdField]: activeWaterMeter.attributes[objectIdField]
+                        })
+                    });
+
+                    waterMeterLayer.applyEdits({
+                        updateFeatures: [updatedGraphic]
+                    }).then(function(editsResult) {
+                        console.log("Update Edits Result:", editsResult);
+                        if (editsResult.updateFeatureResults.length > 0) {
+                            console.log("Feature updated with ObjectID:", editsResult.updateFeatureResults[0].objectId);
+                            alert("Water meter updated successfully.");
+                            idInput.value = "";
+                            addressInput.value = "";
+                            commentsInput.value = "";
+                            activeInput.value = "";
+                            activeWaterMeter = null;
+                        } else {
+                            alert("Failed to update water meter.");
+                        }
+                    }).catch(function(error) {
+                        console.error("Error updating feature:", error);
+                        alert("Error updating water meter.");
+                    });
+
+                }
+
+                view.graphics.remove(tempGraphic);
+                saveButton.disabled = true;
+                editButton.disabled = true;
+            })
+
+            var locateWidget = new Locate({
+                view: view,
+                useHeadingEnabled: false,
+                goToOverride: function(view, options) {
+                options.target.scale = 1500;
+                return view.goTo(options.target);
+                }
+            });
+
+            view.ui.add(locateWidget, "top-left");
+
+            addDebugLog("Setting up OAuth...");
+            const currentUrl = window.location.href;
+            const redirectUri = currentUrl.split('?')[0]; 
+
+            let info = new OAuthInfo({
+                appId: "Mjh66RRePmRFRBGh",
+                popup: false,
+                expiration: 60*24,
+                portalUrl: "https://3j.maps.arcgis.com"
+            });
+
+            esriId.registerOAuthInfos([info]);
+
+            const storedToken = localStorage.getItem("esriToken");
+            if (storedToken) {
+                try {
+                    const parsedToken = JSON.parse(storedToken);
+                    if (parsedToken.expires > Date.now()) {
+                        esriId.initialize(parsedToken);
+                    } else {
+                        localStorage.removeItem("esriToken");
+                    }
+                } catch (e) {
+                    localStorage.removeItem("esriToken");
+                }
+            }
+
+            esriId.on("credential-create", function(response) {
+                const tokenData = esriId.toJSON();
+                localStorage.setItem("esriToken", JSON.stringify(tokenData));
+            });
+
+            esriId.checkSignInStatus(info.portalUrl + "/sharing")
+                .catch(function() {
+                    return esriId.getCredential(info.portalUrl + "/sharing");
+            });
+            
+        });
+    </script>
+</body>
+</html>

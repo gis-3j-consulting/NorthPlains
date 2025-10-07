@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://js.arcgis.com/4.29/esri/themes/light/main.css">
+    <script src="https://js.arcgis.com/4.29/"></script>
+    <title>Maintenance Tracker</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            width: 60vw;
+        }
+        #application-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+        #application-top {
+            background-color: #f8f9fa;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #applications-middle {
+            flex-grow: 1;
+            display: flex;
+            max-height: 50vh;
+        }
+        #application-middle-left {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #application-middle-right {
+            flex: 3;
+            padding: 10px;
+        }
+
+        #site-map, #context-map {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div id="application-container">
+        <div id="application-top">
+            <div id="site-header">
+                <h2>Street Division Site ID#: </h2>
+                <h3>Site Name: </h3>
+            </div>
+            <div id="site-buttons">
+                <button id="prev-site"> Prev </button>
+                <button id="next-site"> >> </button>
+            </div>
+        </div>
+        <div id="applications-middle">
+            <div id="application-middle-left">
+                <div id="context-map"></div>
+                <div id="site-information">
+                    <h4>Site Information</h4>
+                    <p>Site Address: </p>
+                    <p>Category: </p>
+                    <p>Site Area Sq Ft: </p>
+                </div>
+            </div>
+            <div id="application-middle-right">
+                <div id="site-map">
+        </div>
+    </div>
+
+    <script>
+        require([
+            "esri/Map",
+            "esri/views/MapView",
+            "esri/widgets/Legend",
+            "esri/widgets/ScaleBar",
+            "esri/widgets/Expand"
+        ], function(Map, MapView, Legend, ScaleBar, Expand) {
+            const contextMap = new Map({
+                basemap: "streets-navigation-vector"
+            });
+
+            const contextView = new MapView({
+                container: "context-map",
+                map: contextMap,
+                center: [-122.45, 37.75],
+                zoom: 12
+            });
+
+            const siteMap = new Map({
+                basemap: "hybrid"
+            });
+
+            const siteView = new MapView({
+                container: "site-map",
+                map: siteMap,
+                center: [-122.45, 37.75],
+                zoom: 12
+            });
+
+
+            // Add event listeners for buttons
+            document.getElementById("prev-site").addEventListener("click", function() {
+                // Logic to go to the previous site
+                console.log("Previous site button clicked");
+            });
+
+            document.getElementById("next-site").addEventListener("click", function() {
+                // Logic to go to the next site
+                console.log("Next site button clicked");
+            });
+        });
+    </script>
+</body>
+</html>
