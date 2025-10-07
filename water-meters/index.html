@@ -455,7 +455,7 @@
                             idInput.value = "";
                             addressInput.value = "";
                             commentsInput.value = "";
-                            activeInput.value = "";
+                            reasonInput.value = ""; //was avtiveInput changed it to reasonInput to clear out the Reason to revisit box
                             activeWaterMeter = null;
                         } else {
                             alert("Failed to update water meter.");
@@ -483,7 +483,7 @@
 
             view.ui.add(locateWidget, "top-left");
 
-            addDebugLog("Setting up OAuth...");
+            addDebugLog("Setting up OAuth..."); //tried to remove from script because of authorization error
             const currentUrl = window.location.href;
             const redirectUri = currentUrl.split('?')[0]; 
 
